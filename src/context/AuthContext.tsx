@@ -53,8 +53,7 @@ const normalizeUser = (raw: any): MeUser | null => {
     updated_at: raw.updated_at ?? now,
   };
 };
-// “admin” si existe role con .name === "admin"
-const hasAdmin = (roles: string[]) => roles.some(r => r.toLowerCase() === "admin");
+// const hasAdmin = (roles: string[]) => roles.some(r => r.toLowerCase() === "admin");
 
 // aplanar roles/permissions desde payload del backend
 function flattenAuth(payload: any): { roles: string[]; permissions: string[] } {
