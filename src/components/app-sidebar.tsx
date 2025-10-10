@@ -132,11 +132,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const displayName = user?.name ?? user?.email ?? "—";
   const email = user?.email ?? "";
   const initials = (displayName || "U")
-    .split(" ")
-    .filter(Boolean)
-    .map((p) => p[0]!.toUpperCase())
-    .slice(0, 2)
-    .join("");
+  .split(" ")
+  .filter(Boolean)
+  .map((p: string) => p.charAt(0).toUpperCase())
+  .slice(0, 2)
+  .join("");
 
   return (
     <Sidebar collapsible="icon" {...props}>
