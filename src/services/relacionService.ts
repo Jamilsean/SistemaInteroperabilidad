@@ -4,7 +4,7 @@ import type { CrearRelacionPayload, CrearRelacionResponse, EliminarRelacionRespo
  
 
 export const getRelaciones = async (esta_aprobada=2,page = 1, per_page = 10, search = "",search_in
- = "", sort_by = "updated_at", sort_dir = "desc") => {
+ = "", sort_by = "created_at", sort_dir = "asc") => {
   const params: any = {
     esta_aprobada,
     page,

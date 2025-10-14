@@ -170,13 +170,12 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       window.clearInterval(iv);
     };
   }, []);
-
-  // acciones
+  
   const login = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await loginRemote(email, password); // tu servicio debe devolver el payload del backend
+      const res = await loginRemote(email, password); 
       // mapea inmediatamente
       const u = normalizeUser(res?.user);
       setUser(u ?? provisionalFromEmail(email.trim()));

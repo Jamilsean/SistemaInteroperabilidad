@@ -86,6 +86,8 @@ const TableCosechas = forwardRef<TableCosechasRef>((_, ref) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [to, setTo] = useState(0);
+  const [total, setTotal] = useState(0);
   const [repositorios, setRepositorios] = useState<Repositorios[]>([]);
   const [per_page, setPer_page] = useState<number>(5);
   const navigate = useNavigate()
@@ -107,6 +109,8 @@ const TableCosechas = forwardRef<TableCosechasRef>((_, ref) => {
       setRows(data.data);
       setCurrentPage(data.current_page);
       setLastPage(data.last_page);
+      setTo(Number(data.to));
+      setTotal(Number(data.to));
     } catch (e: any) {
       setErr(e?.response?.status ? `Edrror ${e.response.status}` : "Error de conexión");
       if (e.response.status == '403') {
@@ -206,7 +210,7 @@ const TableCosechas = forwardRef<TableCosechasRef>((_, ref) => {
         <CardHeader>
           <CardTitle>Detalle de Cosechas</CardTitle>
           <CardDescription>
-            x {/* Total reportado: {count}. Registros mostrados: {filtered.length}. */}
+            Total: {total} - Registros mostrados: {to}.
 
           </CardDescription>
         </CardHeader>

@@ -40,6 +40,7 @@ import { parseAxiosError, type ServerError } from "@/lib/http-error";
 import type { Especialista } from "@/types/especialistas";
 import { getEspecialistas } from "@/services/especialistaService";
 import { enviarCorreosRelacion } from "@/services/votoService";
+import { Checkbox } from "@/components/ui/checkbox"; // ⬅️ añadido
 
 export type TableIntegracionRef = { reload: () => void };
 
@@ -69,46 +70,23 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_,ref) => {
   const [, setConfirmRaw] = useState<string>("");
 
   const [especialistas, setEspecialistas] = useState<Especialista[]>([]);
-  const [especialistaId, setEspecialistaId] = useState<number | null>(null);
+  // ⬇️ ahora soporte múltiple
+  const [especialistaIds, setEspecialistaIds] = useState<number[]>([]);
+  const [searchEspecialista, setSearchEspecialista] = useState<string>("");
 
   const [confirmErrors, setConfirmErrors] = useState<Record<string, string[]> | undefined>(undefined);
-
 
   const [recursos, setRecursos] = useState<Recurso[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
 
-
-  // const renderPageNumbers = () => {
-  //   const pages = [];
-  //   for (let i = 1; i <= lastPage; i++) {
-  //     pages.push(
-  //       <PaginationItem key={i}>
-  //         <PaginationLink
-  //           href="#"
-  //           isActive={i === currentPage}
-  //           onClick={(e) => {
-  //             e.preventDefault();
-  //             handlePageChange(i);
-  //           }}
-  //         >
-  //           {i}
-  //         </PaginationLink>
-  //       </PaginationItem>
-  //     );
-  //   }
-  //   return pages;
-  // };
   const handleRepoChange = (v: string) => {
     setSelectedRepoValue(v);
-
     if (v === "0") {
-      // Todos: [1,2,3,...]
       const allIds = repositorios.map(r => r.id);
       setIdRepositorio(allIds);
     } else {
-      // Solo uno
       const id = Number(v);
       setIdRepositorio([id]);
     }
@@ -116,8 +94,8 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_,ref) => {
   const handleFilter = async () => {
     fetchRelaciones();
   };
-     useImperativeHandle(ref, () => ({ reload: fetchRelaciones }), []);
-  
+  useImperativeHandle(ref, () => ({ reload: fetchRelaciones }), []);
+
   const fetchRelaciones = async (page = 1, por_pagina = per_page, id_repo = idRepositorio) => {
     setLoading(true);
     try {
@@ -132,104 +110,102 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_,ref) => {
     }
     setLoading(false);
   };
+
   const fetchEspecialistas = async (per_page: 100) => {
-    setLoading(true);
     try {
-      const resp = await getEspecialistas({ per_page }); // ajusta si necesitas paginar
-      setEspecialistas(resp.data); // asumiendo la respuesta `.data` es Especialista[]
-    } catch (e) {
-      console.error(e);
-    }
+      const resp = await getEspecialistas({ per_page });
+      setEspecialistas(resp.data);
+    } catch (e) { console.error(e); }
   };
+
   const getResourceTypeColor = (type: string) => {
     switch (type) {
       case "DOCUMENTO":
-        return "bg-red-100 text-red-800 border-red-200"
       case "DATAVERSE":
         return "bg-red-100 text-red-800 border-red-200"
       case "MAPA":
-        return "bg-green-100 text-green-800 border-green-200"
       case "DSPACE":
         return "bg-green-100 text-green-800 border-green-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
     }
   }
+
   useEffect(() => {
     fetchRelaciones(currentPage);
     fetchEspecialistas(100);
   }, [currentPage]);
+
   const seleccionarOrigen = (r: Recurso) => {
     setRecursoOrigen(r);
-    // si cambias de origen, limpiamos el destino (para evitar relaciones inconsistentes)
     setRecursoDestino(null);
   };
   const seleccionarDestino = (r: Recurso) => {
-    // evita que el destino sea el mismo que el origen
     if (recursoOrigen && r.id === recursoOrigen.id) return;
     setRecursoDestino(r);
   };
-const realizarRelacion = async () => {
-  if (!recursoOrigen || !recursoDestino) return;
 
-  try {
-    const res = await crearRelacion({
-      recurso_origen_id: recursoOrigen.id,
-      tipo_relacion,
-      recurso_destino_id: recursoDestino.id,
-      comentario,
-    });
+  // toggle para multiselección
+  const toggleEspecialista = (id: number) => {
+    setEspecialistaIds((prev) =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    );
+  };
 
-    // Extrae el ID de la relación creada (ajusta según tu shape real)
-    // En tus ejemplos previos: { message, data: { id, ... } }
-    const relacionId =
-      (res as any)?.data?.id ??
-      (res as any)?.id ?? null;
+  const realizarRelacion = async () => {
+    if (!recursoOrigen || !recursoDestino) return;
 
-    // mostramos confirmación de creación
-    setConfirmTitle("Se registró la relación");
-    setConfirmMsg(res.message || "Relación creada correctamente");
-    setConfirmErrors(undefined);
-    setConfirmRaw("");
-    setOpenConfirm(true);
+    try {
+      const res = await crearRelacion({
+        recurso_origen_id: recursoOrigen.id,
+        tipo_relacion,
+        recurso_destino_id: recursoDestino.id,
+        comentario,
+      });
+      const relacionId = (res as any)?.data?.id ?? (res as any)?.id ?? null;
 
-    // Si hay especialista seleccionado -> enviar correos
-    if (relacionId && especialistaId) {
-      try {
-        const correoRes = await enviarCorreosRelacion(relacionId, {
-          relacion_id: relacionId,
-          especialistas: [especialistaId],
-        });
-        // puedes sumar al mensaje:
-        setConfirmMsg(
-          (res.message || "Relación creada correctamente") +
-            `\n${correoRes?.message ?? "Correo enviado al especialista"}`
-        );
-      } catch (sendErr) {
-        // No rompemos el flujo si falla el correo; solo informamos
-        console.error(sendErr);
-        setConfirmMsg(
-          (res.message || "Relación creada") +
-            "\nNo se pudo enviar el correo al especialista seleccionado."
-        );
+      setConfirmTitle("Se registró la relación");
+      setConfirmMsg(res.message || "Relación creada correctamente");
+      setConfirmErrors(undefined);
+      setConfirmRaw("");
+      setOpenConfirm(true);
+
+      // ⬇️ si hay 1 o varios especialistas seleccionados, enviar
+      if (relacionId && especialistaIds.length > 0) {
+        try {
+          const correoRes = await enviarCorreosRelacion(relacionId, {
+            relacion_id: relacionId,
+            especialistas: especialistaIds, // <— ahora arreglo
+          });
+          setConfirmMsg(
+            (res.message || "Relación creada correctamente") +
+              `\n${correoRes?.message ?? "Correos enviados a especialistas"}`
+          );
+        } catch (sendErr) {
+          console.error(sendErr);
+          setConfirmMsg(
+            (res.message || "Relación creada") +
+              "\nNo se pudo enviar correo a los especialistas seleccionados."
+          );
+        }
       }
-    }
 
-    // limpiar estados
-    setRecursoOrigen(null);
-    setRecursoDestino(null);
-    setTipo_relacion("");
-    setComentario("");
-    setEspecialistaId(null);
-  } catch (e: any) {
-    const err: ServerError = parseAxiosError(e);
-    setConfirmTitle(`Error ${err.status || ""}`.trim());
-    setConfirmMsg(err.message);
-    setConfirmErrors(err.errors);
-    setConfirmRaw(err.raw ? JSON.stringify(err.raw, null, 2) : "");
-    setOpenConfirm(true);
-  }
-};
+      // limpiar
+      setRecursoOrigen(null);
+      setRecursoDestino(null);
+      setTipo_relacion("");
+      setComentario("");
+      setEspecialistaIds([]);
+      setSearchEspecialista("");
+    } catch (e: any) {
+      const err: ServerError = parseAxiosError(e);
+      setConfirmTitle(`Error ${err.status || ""}`.trim());
+      setConfirmMsg(err.message);
+      setConfirmErrors(err.errors);
+      setConfirmRaw(err.raw ? JSON.stringify(err.raw, null, 2) : "");
+      setOpenConfirm(true);
+    }
+  };
 
   const limpiarOrigen = () => {
     setRecursoOrigen(null);
@@ -240,14 +216,25 @@ const realizarRelacion = async () => {
     if (page >= 1 && page <= lastPage) setCurrentPage(page);
   };
 
-  if (loading) return <div className="flex items-center space-x-4">
-    DATOS CARGANDO
-    <Skeleton className="h-12 w-12 rounded-full" />
-    <div className="space-y-2">
-      <Skeleton className="h-4 w-[250px]" />
-      <Skeleton className="h-4 w-[200px]" />
+  if (loading) return (
+    <div className="flex items-center space-x-4">
+      DATOS CARGANDO
+      <Skeleton className="h-12 w-12 rounded-full" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[250px]" />
+        <Skeleton className="h-4 w-[200px]" />
+      </div>
     </div>
-  </div>;
+  );
+
+  // lista filtrada por texto
+  const filteredEspecialistas = especialistas.filter((e) => {
+    const q = searchEspecialista.trim().toLowerCase();
+    if (!q) return true;
+    const nombre = `${e.nombres ?? ""} ${e.apellidos ?? ""}`.toLowerCase();
+    const correo = (e.email ?? "").toLowerCase();
+    return nombre.includes(q) || correo.includes(q);
+  });
 
   return (
     <div className="flex flex-col">
@@ -273,8 +260,6 @@ const realizarRelacion = async () => {
                     </ul>
                   </div>
                 )}
-
-
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -285,6 +270,7 @@ const realizarRelacion = async () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
       <div className=" my-4 text-muted-foreground flex items-center gap-2">
         <span>
           Origen:&nbsp;
@@ -304,62 +290,110 @@ const realizarRelacion = async () => {
             <X className="h-4 w-4" />
           </Button>
         )}
-        {hasBoth && (
 
+        {hasBoth && (
           <Dialog>
             <form>
               <DialogTrigger asChild>
-                <Button variant="default"> <Link2 className="h-4 w-4" />
-                  Realizar relación</Button>
+                <Button variant="default">
+                  <Link2 className="h-4 w-4" />
+                  &nbsp;Realizar relación
+                </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+
+              <DialogContent className="sm:max-w-[520px]">
                 <DialogHeader>
                   <DialogTitle>Realizar relación</DialogTitle>
                   <DialogDescription>
                     A continuación realizará la relación entre los recursos seleccionados
                   </DialogDescription>
                 </DialogHeader>
+
                 <div className="grid gap-4">
                   <div className="grid gap-3">
                     <Label htmlFor="tipo_relacion">Tipo relación</Label>
-                    <Input id="tipo_relacion" name="tipo_relacion" placeholder="Relación implícita"
+                    <Input
+                      id="tipo_relacion"
+                      name="tipo_relacion"
+                      placeholder="Relación implícita"
                       value={tipo_relacion}
-                      onChange={(e) => setTipo_relacion(e.target.value)} />
-
+                      onChange={(e) => setTipo_relacion(e.target.value)}
+                    />
                   </div>
+
                   <div className="grid gap-3">
                     <Label htmlFor="comentario">Comentario</Label>
-                    <Textarea id="comentario" name="comentario" placeholder="Registre un comentario de la relación"
+                    <Textarea
+                      id="comentario"
+                      name="comentario"
+                      placeholder="Registre un comentario de la relación"
                       value={comentario}
-                      onChange={(e) => setComentario(e.target.value)} />
+                      onChange={(e) => setComentario(e.target.value)}
+                    />
                   </div>
-                  <div className="grid gap-3">
-                    <Label htmlFor="especialista">Especialista</Label>
-                    <Select
-                      value={especialistaId ? String(especialistaId) : ""}
-                      onValueChange={(v) => setEspecialistaId(Number(v))}
-                    >
-                      <SelectTrigger id="especialista" className="w-full">
-                        <SelectValue placeholder="Selecciona un especialista" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {especialistas.map((e) => (
-                            <SelectItem key={e.id} value={String(e.id)}>
-                              {e.nombres} {e.apellidos}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+
+                  {/* 🔎 Multi selección + búsqueda de especialistas */}
+                  <div className="grid gap-2">
+                    <Label>Especialistas (opcional)</Label>
+                    <Input
+                      placeholder="Buscar especialista por nombre o correo…"
+                      value={searchEspecialista}
+                      onChange={(e) => setSearchEspecialista(e.target.value)}
+                    />
+                    <div className="max-h-60 overflow-auto rounded-md border p-2 space-y-1">
+                      {filteredEspecialistas.length ? (
+                        filteredEspecialistas.map((e) => {
+                          const id = e.id!;
+                          const checked = especialistaIds.includes(id);
+                          return (
+                            <label
+                              key={id}
+                              className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
+                            >
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() => toggleEspecialista(id)}
+                              />
+                              <div className="flex flex-col text-sm">
+                                <span className="font-medium">
+                                  {e.nombres} {e.apellidos}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {e.email ?? ""}
+                                </span>
+                              </div>
+                            </label>
+                          );
+                        })
+                      ) : (
+                        <div className="text-sm text-muted-foreground px-2 py-4">
+                          Sin resultados para “{searchEspecialista}”
+                        </div>
+                      )}
+                    </div>
+                    {especialistaIds.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        Seleccionados: {especialistaIds.length}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 ml-2"
+                          onClick={() => setEspecialistaIds([])}
+                        >
+                          Limpiar
+                        </Button>
+                      </div>
+                    )}
                     <p className="text-xs text-muted-foreground">
-                      Se enviará un correo al especialista seleccionado para que emita su voto.
+                      Se enviará un correo a todos los especialistas seleccionados para que emitan su voto.
                     </p>
                   </div>
                 </div>
+
                 <DialogFooter>
                   <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
+                    <Button variant="outline">Cancelar</Button>
                   </DialogClose>
                   <Button onClick={realizarRelacion} className="gap-2">
                     <Link2 className="h-4 w-4" />
@@ -371,7 +405,8 @@ const realizarRelacion = async () => {
           </Dialog>
         )}
       </div>
-      <form  >
+
+      <form>
         <div className="flex items-center gap-4 my-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -414,13 +449,11 @@ const realizarRelacion = async () => {
               </SelectGroup>
             </SelectContent>
           </Select>
+
           <Button variant="default" size="sm" onClick={handleFilter} disabled={loading}>
             <Filter className="w-4 h-4 mr-2" />
             {loading ? "Filtrando..." : "Filtrar"}
           </Button>
-
-
-
         </div>
       </form>
 
@@ -428,41 +461,29 @@ const realizarRelacion = async () => {
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-gray-900">Tabla de Recursos</CardTitle>
         </CardHeader>
+
         <Pagination>
           <PaginationContent>
-            {/* Previous */}
             <PaginationItem>
               <PaginationPrevious
                 href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) handlePageChange(currentPage - 1);
-                }}
+                onClick={(e) => { e.preventDefault(); if (currentPage > 1) handlePageChange(currentPage - 1); }}
                 className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
               />
             </PaginationItem>
-
-
-            {/* Ellipsis si hay muchas páginas */}
             {lastPage > 5 && currentPage < lastPage - 2 && (
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
+              <PaginationItem><PaginationEllipsis /></PaginationItem>
             )}
-
-            {/* Next */}
             <PaginationItem>
               <PaginationNext
                 href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < lastPage) handlePageChange(currentPage + 1);
-                }}
+                onClick={(e) => { e.preventDefault(); if (currentPage < lastPage) handlePageChange(currentPage + 1); }}
                 className={currentPage === lastPage ? "pointer-events-none opacity-50" : ""}
               />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
+
         <CardContent>
           <div className="rounded-lg border border-gray-200 overflow-hidden scroll-auto">
             <Table>
@@ -479,13 +500,9 @@ const realizarRelacion = async () => {
                   const esOrigen = recursoOrigen?.id === resource.id;
                   const esDestino = recursoDestino?.id === resource.id;
                   return (
-
-                    <TableRow
-                      key={resource.id}
-                    >
+                    <TableRow key={resource.id}>
                       <TableCell className="align-top p-4 w-[350px]">
                         <div className="space-y-3">
-
                           <div>
                             <h3 className="max-w-[600px] whitespace-normal font-medium text-sm text-gray-900 leading-tight break-words hyphens-auto">
                               {resource.title}
@@ -496,22 +513,17 @@ const realizarRelacion = async () => {
                             <p className="text-xs text-gray-700  w-[350px] whitespace-normal break-words">{resource.autores}</p>
                           </div>
                           <div className="flex items-start justify-between gap-2">
-                            <Badge variant="outline" className="text-xs font-mono bg-cyan-100">
-                              ID: {resource.id}
-                            </Badge>
-
+                            <Badge variant="outline" className="text-xs font-mono bg-cyan-100">ID: {resource.id}</Badge>
                           </div>
                         </div>
                       </TableCell>
 
                       <TableCell className="align-top p-4">
                         <div className="space-y-3">
-
                           <div>
                             <p className="text-xs text-gray-600 font-medium mb-1">Palabras clave:</p>
                             <div className=" gap-1 w-[350px] whitespace-normal break-words">
                               {resource.key_words}
-
                             </div>
                           </div>
                         </div>
@@ -547,22 +559,16 @@ const realizarRelacion = async () => {
                               <p className="text-xs text-gray-900 font-mono">{formatDateTime(resource.updated_at)}</p>
                             </div>
                           </div>
-                          <div>
-
-                          </div>
                         </div>
                       </TableCell>
 
                       <TableCell className="align-top p-4 flex gap-1.5">
                         <Eye className="text-blue-500" />
                         <div className="flex items-center gap-2">
-                          {esOrigen && (
-                            <span className="text-xs rounded bg-blue-50 text-blue-700 px-2 py-0.5">Origen</span>
-                          )}
-                          {esDestino && (
-                            <span className="text-xs rounded bg-green-50 text-green-700 px-2 py-0.5">Destino</span>
-                          )}
+                          {esOrigen && (<span className="text-xs rounded bg-blue-50 text-blue-700 px-2 py-0.5">Origen</span>)}
+                          {esDestino && (<span className="text-xs rounded bg-green-50 text-green-700 px-2 py-0.5">Destino</span>)}
                         </div>
+
                         {!recursoOrigen && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -589,6 +595,7 @@ const realizarRelacion = async () => {
                             </AlertDialogContent>
                           </AlertDialog>
                         )}
+
                         {recursoOrigen && !esOrigen && !esDestino && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -629,38 +636,23 @@ const realizarRelacion = async () => {
           </div>
 
           <div className="flex items-center justify-between mt-6">
-
             <div className="flex items-center gap-2">
               <Pagination>
                 <PaginationContent>
-                  {/* Previous */}
                   <PaginationItem>
                     <PaginationPrevious
                       href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage > 1) handlePageChange(currentPage - 1);
-                      }}
+                      onClick={(e) => { e.preventDefault(); if (currentPage > 1) handlePageChange(currentPage - 1); }}
                       className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
-
-
-                  {/* Ellipsis si hay muchas páginas */}
                   {lastPage > 5 && currentPage < lastPage - 2 && (
-                    <PaginationItem>
-                      <PaginationEllipsis />
-                    </PaginationItem>
+                    <PaginationItem><PaginationEllipsis /></PaginationItem>
                   )}
-
-                  {/* Next */}
                   <PaginationItem>
                     <PaginationNext
                       href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage < lastPage) handlePageChange(currentPage + 1);
-                      }}
+                      onClick={(e) => { e.preventDefault(); if (currentPage < lastPage) handlePageChange(currentPage + 1); }}
                       className={currentPage === lastPage ? "pointer-events-none opacity-50" : ""}
                     />
                   </PaginationItem>
@@ -670,10 +662,7 @@ const realizarRelacion = async () => {
           </div>
         </CardContent>
       </Card>
-
-
     </div>
   );
 });
-
 export default TableIRecursos;

@@ -29,8 +29,7 @@ export default function AppRoutes() {
           <Route path="/recursos/:id" element={<RecursoDetailPage />} />
         </Route>
 
-        {/* <Route path="/recursos/:id" element={<RecursoDetailPage />} /> */}
-        <Route path="/voto/:token" element={<VotoPage />} />
+
 
         {/* solo para no autenticados */}
         <Route element={<PublicOnlyRoute />}>
@@ -44,6 +43,8 @@ export default function AppRoutes() {
             {/* Rutas que no requieren permisos */}
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/recursos" element={<Recursos />} />
+            {/* <Route path="/recursos/:id" element={<RecursoDetailPage />} /> */}
+            <Route path="/voto/:token" element={<VotoPage />} />
             {/* Rutas que requieren permisos */}
             <Route element={<PermissionRoute anyOf={["dashboard.read"]} />}>
               <Route path="/dashboard" element={<DashboardLayout />} />
@@ -51,7 +52,7 @@ export default function AppRoutes() {
             <Route element={<PermissionRoute anyOf={["harvests.read", "harvests.create"]} />}>
               <Route path="/cosechas" element={<Cosechas />} />
             </Route>
-            <Route element={<PermissionRoute anyOf={["relaciones.read"]} />}>
+            <Route element={<PermissionRoute anyOf={["harvests.read"]} />}>
               <Route path="/integraciones" element={<Integraciones />} />
             </Route>
             <Route element={<PermissionRoute anyOf={["roles.read"]} />}>
