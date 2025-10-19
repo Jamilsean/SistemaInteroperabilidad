@@ -94,7 +94,7 @@ export default function RecursoDetailPage() {
         <Button asChild variant="ghost">
           <Link to="/landingpage">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
+            Inicio
           </Link>
         </Button>
 
@@ -112,13 +112,13 @@ export default function RecursoDetailPage() {
 
       {/* Cabecera del recurso */}
       <Card className="p-6 rounded-2xl border-blue-100">
-        <div className="flex gap-5">
+        <div className="sm:flex gap-5">
           <div className="shrink-0">
             {data.url_image ? (
               <img
                 src={data.url_image}
                 alt={data.title}
-                className="w-24 h-24 object-cover rounded-xl ring-1 ring-muted"
+                className="h-60  rounded-xl ring-1 ring-muted"
               />
             ) : (
               <div className="w-24 h-24 rounded-xl bg-blue-50/60 grid place-items-center text-blue-700 font-semibold">

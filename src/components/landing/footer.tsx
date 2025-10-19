@@ -10,10 +10,10 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center">
-               <img src="public/images/Logo.png" alt="" />
+              <div className="w-40 bg-white p-1  flex items-center justify-center">
+               <img className="" src="/images/Logo3.png" alt="" />
               </div>
-              <span className="font-bold text-xl">{abreviatura_institucio}</span>
+              
             </div>
             <p className="text-primary-foreground/80 text-sm text-pretty">
               {nombre_sistema}

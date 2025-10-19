@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import type { Recurso, RecursosResponse } from "@/types/recursos";
 
 import { parseAxiosError } from "@/lib/http-error";
-import { getRecursos } from "@/services/recursosService";
+import {  getRecursosPublic } from "@/services/recursosService";
 import { ResourceCard } from "./ResourceCard";
 
 // pequeño debounce
@@ -59,7 +59,7 @@ export function SearchSection() {
 
     setLoading(true);
     try {
-      const res: RecursosResponse = await getRecursos(
+      const res: RecursosResponse = await getRecursosPublic(
         p,
         perPage,
         repositorioIds.length ? repositorioIds : [],      // si vacío, no envía el param desde el servicio

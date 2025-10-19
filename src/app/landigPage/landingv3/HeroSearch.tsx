@@ -1,0 +1,267 @@
+"use client";
+import * as React from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { useAutocomplete } from "@/hooks/useAutocomplete";
+import { allowOnlyMark } from "@/types/autocomplete";
+
+const REPO_DATASET = 1;
+const REPO_DOCUMENTO = 2;
+const REPO_MAPA = 3;
+
+// Ajusta esta ruta si tu detalle de documento es distinta
+const DOC_ROUTE_BASE = "/recursos";
+
+export default function HeroSearch() {
+  const navigate = useNavigate();
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
+
+  // filtros básicos
+  const [search, setSearch] = React.useState("");
+  const [searchIn, setSearchIn] = React.useState<"title" | "autores" | "abstract" | "key_words">("title");
+  const [sortBy, setSortBy] = React.useState<"title" | "autores" | "abstract" | "key_words" | "views">("title");
+  const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc");
+  const [repo, setRepo] = React.useState<"all" | "dataset" | "documento" | "mapa">("all");
+
+  // autocomplete
+  const { items: suggestions, open, setOpen, loading } = useAutocomplete(search, 8);
+  const [activeIndex, setActiveIndex] = React.useState<number>(-1);
+  const listRef = React.useRef<HTMLDivElement | null>(null);
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const submit = () => {
+    const params = new URLSearchParams();
+    if (search.trim()) params.set("search", search.trim());
+    params.set("search_in", searchIn);
+    params.set("sort_by", sortBy);
+    params.set("sort_dir", sortDir);
+
+    if (repo !== "all") {
+      const id = repo === "dataset" ? REPO_DATASET : repo === "documento" ? REPO_DOCUMENTO : REPO_MAPA;
+      params.set("repositorio_id", String(id));
+    }
+    navigate(`/buscar?${params.toString()}`);
+    setOpen(false);
+    setActiveIndex(-1);
+  };
+
+  const goToSuggestion = (id: number) => {
+    navigate(`${DOC_ROUTE_BASE}/${id}`);
+    setOpen(false);
+    setActiveIndex(-1);
+  };
+
+  // Cerrar al hacer click fuera
+  React.useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!listRef.current || !inputRef.current) return;
+      const target = e.target as Node;
+      if (!listRef.current.contains(target) && !inputRef.current.contains(target)) {
+        setOpen(false);
+        setActiveIndex(-1);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [setOpen]);
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open || suggestions.length === 0) {
+      if (e.key === "Enter") submit();
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIndex >= 0) {
+        goToSuggestion(suggestions[activeIndex].id);
+      } else {
+        submit();
+      }
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setActiveIndex(-1);
+    }
+  };
+
+  return (
+    <section className="relative">
+      <div className="relative z-10 py-5 lg:py-10 ">
+        <div className="container mx-auto w-2/3 px-4 lg:px-8">
+          <Card className="p-4 lg:p-6 rounded-2xl backdrop-blur bg-white/5">
+            <div className="flex gap-3 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Buscar por título, autor, tema…"
+                  className="pl-10 h-10 text-base bg-white"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setOpen(true); // abrir mientras escribe (si hay data el hook lo controla)
+                    setActiveIndex(-1);
+                  }}
+                  onKeyDown={onKeyDown}
+                  aria-autocomplete="list"
+                  aria-expanded={open}
+                  aria-controls="autocomplete-listbox"
+                />
+
+                {/* Dropdown de sugerencias */}
+                {open && (loading || suggestions.length > 0) && (
+                  <div
+                    ref={listRef}
+                    id="autocomplete-listbox"
+                    role="listbox"
+                    className="absolute z-50 mt-1 w-full max-h-72 overflow-auto rounded-xl border bg-white shadow"
+                  >
+                    {loading && (
+                      <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Buscando…
+                      </div>
+                    )}
+
+                    {!loading &&
+                      suggestions.map((sug, idx) => {
+                        const sanitized = allowOnlyMark(sug.title);
+                        const isActive = idx === activeIndex;
+                        return (
+                          <button
+                            key={sug.id}
+                            role="option"
+                            aria-selected={isActive}
+                            onMouseEnter={() => setActiveIndex(idx)}
+                            onMouseLeave={() => setActiveIndex(-1)}
+                            onClick={() => goToSuggestion(sug.id)}
+                            className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                              isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                            }`}
+                          >
+                            <span
+                              // Mostramos SOLO <mark> del backend
+                              dangerouslySetInnerHTML={{ __html: sanitized }}
+                              className="block leading-snug [&>mark]:bg-yellow-200/60 [&>mark]:px-0.5 [&>mark]:rounded"
+                            />
+                          </button>
+                        );
+                      })}
+
+                    {!loading && suggestions.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">Sin resultados</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <Button size="lg" className="px-6 bg-white text-black hover:bg-gray-200" onClick={submit}>
+                Buscar
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAdvanced((v) => !v)}
+                className="text-muted-foreground bg-white"
+              >
+                {showAdvanced ? (
+                  <>
+                    <X className="h-4 w-4 mr-2" />
+                    Ocultar filtros
+                  </>
+                ) : (
+                  <>
+                    <SlidersHorizontal className="h-4 w-4 mr-2" />
+                    Búsqueda avanzada
+                  </>
+                )}
+              </Button>
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-white px-2 rounded-xl">
+                <span>Presiona</span>
+                <kbd className="px-2 py-1 bg-muted rounded border border-border font-mono">Enter</kbd>
+                <span>para buscar</span>
+              </div>
+            </div>
+
+            {showAdvanced && (
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <div className="text-sm text-white mb-1">Buscar en</div>
+                  <Select value={searchIn} onValueChange={(v) => setSearchIn(v as any)}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Campo" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="title">Título</SelectItem>
+                      <SelectItem value="autores">Autores</SelectItem>
+                      <SelectItem value="abstract">Resumen</SelectItem>
+                      <SelectItem value="key_words">Palabras clave</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <div className="text-sm text-white mb-1">Ordenar por</div>
+                  <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Campo" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="title">Título</SelectItem>
+                      <SelectItem value="autores">Autores</SelectItem>
+                      <SelectItem value="abstract">Resumen</SelectItem>
+                      <SelectItem value="key_words">Palabras clave</SelectItem>
+                      <SelectItem value="views">Vistas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <div className="text-sm text-white mb-1">Dirección</div>
+                  <Select value={sortDir} onValueChange={(v) => setSortDir(v as any)}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="asc/desc" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="asc">Ascendente</SelectItem>
+                      <SelectItem value="desc">Descendente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <div className="text-sm text-white mb-1">Tipo (repositorio)</div>
+                  <Select value={repo} onValueChange={(v) => setRepo(v as any)}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="documento">Documentos</SelectItem>
+                      <SelectItem value="mapa">Mapas</SelectItem>
+                      <SelectItem value="dataset">Datasets</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+      </div>
+    </section>
+  );
+}

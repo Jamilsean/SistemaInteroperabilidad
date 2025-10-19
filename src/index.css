@@ -2,15 +2,24 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-
+@media (prefers-reduced-motion: reduce) {
+  .snap-y, .snap-mandatory, .snap-start {
+    scroll-snap-type: none !important;
+    scroll-snap-align: none !important;
+  }
+}
 :root {
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(14.479% 0.00002 271.152);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
+  --azul: #318cdd;
+  --azul-secondary: #003E76;
+  --verde: #00b188;
+  --celeste: #95d9ea;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -83,6 +92,10 @@
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-azul: var(--azul);
+  --color-azul-secondary: var(--azul-secondary);
+  --color-verde: var(--verde);
+  --color-celeste: var(--celeste);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
@@ -121,6 +134,21 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Registrar la tipografía Flama-Basic */
+@font-face {
+  font-family: 'Flama-Basic';
+  src: url('/tipografia/Flama-Basic.otf') format('opentype');
+ /* src: url('/tipografia/Flama-Bold-Italic.otf') format('opentype');*/
+
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Aplicar la tipografía globalmente */
+body {
+  font-family: 'Flama-Basic', sans-serif;
 }
 
 /* Animaciones personalizadas */

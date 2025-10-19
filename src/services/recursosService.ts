@@ -1,6 +1,7 @@
 // src/services/recursoService.ts
 import { API_BASE_URL } from "@/config/env"
 import api from "@/lib/api"
+import apiPublic from "@/lib/api-public"
  import type { RecursoDetalle, RecursosResponse } from "@/types/recursos"
 
 
@@ -17,7 +18,6 @@ export const getRecursos = async (page = 1, per_page = 5, repositorio_id: number
     sort_by,
     sort_dir,
   };
-
   if (search) {
     params.search = search;
   }
@@ -27,5 +27,52 @@ export const getRecursos = async (page = 1, per_page = 5, repositorio_id: number
 };
 export const getRecursoById = async (id: number): Promise<RecursoDetalle> => {
   const { data } = await api.get<RecursoDetalle>(`/recursos/${id}`);
+  return data;
+};
+export const getRecursosWithMeilisearch = async (
+  page = 1,
+  per_page = 5,
+  repositorio_id: number[] = [],
+  search = "",
+  search_in = "title",
+  sort_by = "title",
+  sort_dir = "asc"
+) => {
+  const params: any = { page, per_page, repositorio_id, search_in, sort_by, sort_dir };
+  if (search) params.search = search;
+
+  const { data } = await apiPublic.get<RecursosResponse>(`${API_BASE_URL}/x-meilisearch`, {
+    params,
+    headers: { "X-Skip-Auth": "1" },
+    withCredentials: false,
+  });
+  return data;
+};
+
+export const getRecursosPublic = async (
+  page = 1,
+  per_page = 5,
+  repositorio_id: number[] = [],
+  search = "",
+  search_in = "title",
+  sort_by = "title",
+  sort_dir = "asc"
+) => {
+  const params: any = { page, per_page, repositorio_id, search_in, sort_by, sort_dir };
+  if (search) params.search = search;
+
+  const { data } = await apiPublic.get<RecursosResponse>(`${API_BASE_URL}/recursos`, {
+    params,
+    headers: { "X-Skip-Auth": "1" },
+    withCredentials: false,
+  });
+  return data;
+};
+
+export const getRecursoByIdPublic = async (id: number): Promise<RecursoDetalle> => {
+  const { data } = await apiPublic.get<RecursoDetalle>(`/recursos/${id}`, {
+    headers: { "X-Skip-Auth": "1" },
+    withCredentials: false,
+  });
   return data;
 };

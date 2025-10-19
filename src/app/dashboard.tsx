@@ -9,7 +9,7 @@ import { RefreshCw, ExternalLink, ImageIcon, Server, Database, Globe2 } from "lu
 import {
   SidebarTrigger
 } from "@/components/ui/sidebar"
- import {
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -21,6 +21,7 @@ import { getDashboard } from "@/services/dashboardService";
 import type { DashboardResponse, DashboardRepositorio, CosechaItem } from "@/types/dashboard";
 import { parseAxiosError } from "@/lib/http-error";
 import { Separator } from "@radix-ui/react-separator";
+import { Link } from "react-router-dom";
 
 // --------- helpers sin dependencias para “charts” ----------
 function maxBy<T>(arr: T[], sel: (x: T) => number): number {
@@ -149,9 +150,9 @@ export default function DashboardLayout() {
   }
 
   return (
-        <div className="flex flex-col">
+    <div className="flex flex-col">
 
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mr-2 h-4" />
         <Breadcrumb>
@@ -166,68 +167,77 @@ export default function DashboardLayout() {
           </BreadcrumbList>
         </Breadcrumb>
       </header>
-    <div className="space-y-6 px-2 py-15">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Resumen de repositorios y cosechas</p>
+      <div className="space-y-6 px-2 py-15">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Resumen de repositorios y cosechas</p>
+          </div>
+          <div className="flex gap-1">
+            <Button variant="outline" onClick={fetchDashboard}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refrescar
+            </Button>
+            <Link to="/landingpage" className="bg-azul px-3 py-1 rounded-sm text-gray-200 hover:text-foreground transition-colors">
+              <span className="inline-flex items-center gap-2">
+                <img src="/images/Logo.png" alt="INAIGEM" className="h-4 w-4" />
+                Ver más
+              </span>
+            </Link>
+          </div>
+
         </div>
-        <Button variant="outline" onClick={fetchDashboard}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refrescar
-        </Button>
-      </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Repositorios</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <div className="text-3xl font-bold">{totalRepos}</div>
-            <Server className="h-8 w-8 text-muted-foreground" />
-          </CardContent>
-        </Card>
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-azul-secondary">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-white">Repositorios</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div className="text-3xl font-bold text-white">{totalRepos}</div>
+              <Server className="h-8 w-8 text-white" />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Recursos totales</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <div className="text-3xl font-bold">{totalRecursos}</div>
-            <Database className="h-8 w-8 text-muted-foreground" />
-          </CardContent>
-        </Card>
+          <Card className="bg-celeste">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-gray-700">Recursos totales</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div className="text-3xl font-bold">{totalRecursos}</div>
+              <Database className="h-8 w-8 text-muted-foreground" />
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-muted-foreground">Cosechas exitosas</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <div>
-              <div className="text-3xl font-bold">{cosechas?.total_cosechas_exitosas ?? 0}</div>
-              <div className="text-xs text-muted-foreground">
-                Errores: {cosechas?.total_cosechas_error ?? 0}
+          <Card className="bg-verde">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-white">Cosechas exitosas</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div>
+                <div className="text-3xl font-bold text-white">{cosechas?.total_cosechas_exitosas ?? 0}</div>
+                <div className="text-xs text-white">
+                  Errores: {cosechas?.total_cosechas_error ?? 0}
+                </div>
               </div>
-            </div>
-            <Globe2 className="h-8 w-8 text-muted-foreground" />
+              <Globe2 className="h-8 w-8 text-white" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* “Chart” Barras con shadcn (BarList) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Recursos por repositorio</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BarList items={repoBars} />
           </CardContent>
         </Card>
-      </div>
 
-      {/* “Chart” Barras con shadcn (BarList) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Recursos por repositorio</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BarList items={repoBars} />
-        </CardContent>
-      </Card>
-
-      {/* “Chart” Sparklines con shadcn (SVG) 
+        {/* “Chart” Sparklines con shadcn (SVG) 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">4Y</CardTitle>
@@ -285,111 +295,111 @@ export default function DashboardLayout() {
         </CardContent>
       </Card>
 */}
-      {/* Cards por repositorio con último recurso */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Repositorios y último recurso</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {(data?.repositorios || []).map((r: DashboardRepositorio) => (
-              <Card key={r.id} className="border">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-semibold">{r.nombre}</CardTitle>
-                    <Badge variant="outline">{r.recursos_count} recursos</Badge>
-                  </div>
-                  <div className="text-xs text-muted-foreground truncate">{r.base_url}</div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {r.ultimo_recurso ? (
-                    <div className="space-y-2">
-                      <div className="aspect-[16/9] w-full overflow-hidden rounded-md border bg-muted flex items-center justify-center">
-                        {r.ultimo_recurso.url_image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={r.ultimo_recurso.url_image}
-                            alt={r.ultimo_recurso.title}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium line-clamp-2" title={r.ultimo_recurso.title}>
-                          {r.ultimo_recurso.title}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Creado: {formatDateTime(r.ultimo_recurso.created_at)}
-                        </div>
-                        <a
-                          href={r.ultimo_recurso.persistent_uri || r.base_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-xs underline"
-                        >
-                          Ver recurso <ExternalLink className="h-3 w-3" />
-                        </a>
-                      </div>
+        {/* Cards por repositorio con último recurso */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Repositorios y último recurso</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(data?.repositorios || []).map((r: DashboardRepositorio) => (
+                <Card key={r.id} className="border">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-semibold">{r.nombre}</CardTitle>
+                      <Badge variant="outline">{r.recursos_count} recursos</Badge>
                     </div>
-                  ) : (
-                    <div className="text-sm text-muted-foreground">Sin recursos recientes</div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+                    <div className="text-xs text-muted-foreground truncate">{r.base_url}</div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {r.ultimo_recurso ? (
+                      <div className="space-y-2">
+                        <div className="aspect-[16/9] w-full overflow-hidden rounded-md border bg-muted flex items-center justify-center">
+                          {r.ultimo_recurso.url_image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={r.ultimo_recurso.url_image}
+                              alt={r.ultimo_recurso.title}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium line-clamp-2" title={r.ultimo_recurso.title}>
+                            {r.ultimo_recurso.title}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Creado: {formatDateTime(r.ultimo_recurso.created_at)}
+                          </div>
+                          <a
+                            href={r.ultimo_recurso.persistent_uri || r.base_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs underline"
+                          >
+                            Ver recurso <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">Sin recursos recientes</div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Tabla: últimas cosechas */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Últimas cosechas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px]">ID</TableHead>
-                  <TableHead>Repositorio</TableHead>
-                  <TableHead>Inicio</TableHead>
-                  <TableHead>Fin</TableHead>
-                  <TableHead className="text-right">Nuevos</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Estado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedCosechas.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-mono text-xs">#{c.id}</TableCell>
-                    <TableCell>{c.repositorio?.nombre || c.repositorio_id}</TableCell>
-                    <TableCell className="text-xs">{formatDateTime(c.started_at)}</TableCell>
-                    <TableCell className="text-xs">{formatDateTime(c.finished_at)}</TableCell>
-                    <TableCell className="text-right">{c.new_records}</TableCell>
-                    <TableCell className="text-right">{c.total_records}</TableCell>
-                    <TableCell>
-                      {c.error ? <Badge variant="destructive">Error</Badge> : <Badge variant="secondary">OK</Badge>}
-                    </TableCell>
-                  </TableRow>
-                ))}
-
-                {!sortedCosechas.length && (
+        {/* Tabla: últimas cosechas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Últimas cosechas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border overflow-hidden">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
-                      No hay cosechas recientes
-                    </TableCell>
+                    <TableHead className="w-[80px]">ID</TableHead>
+                    <TableHead>Repositorio</TableHead>
+                    <TableHead>Inicio</TableHead>
+                    <TableHead>Fin</TableHead>
+                    <TableHead className="text-right">Nuevos</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead>Estado</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                </TableHeader>
+                <TableBody>
+                  {sortedCosechas.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-mono text-xs">#{c.id}</TableCell>
+                      <TableCell>{c.repositorio?.nombre || c.repositorio_id}</TableCell>
+                      <TableCell className="text-xs">{formatDateTime(c.started_at)}</TableCell>
+                      <TableCell className="text-xs">{formatDateTime(c.finished_at)}</TableCell>
+                      <TableCell className="text-right">{c.new_records}</TableCell>
+                      <TableCell className="text-right">{c.total_records}</TableCell>
+                      <TableCell>
+                        {c.error ? <Badge variant="destructive">Error</Badge> : <Badge variant="secondary">OK</Badge>}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
+                  {!sortedCosechas.length && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">
+                        No hay cosechas recientes
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

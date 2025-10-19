@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Loader2 } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { nombre_institucio, nombre_sistema, REDIRECT_SSO } from "@/config/env";
 import { toast } from "sonner";
@@ -190,21 +190,16 @@ export default function LoginPage() {
         </Card>
 
         <div className="mt-10 text-center text-sm text-gray-500">
-          <p className="mt-2">© 2025 {nombre_sistema}. Todos los derechos reservados.</p>
-          <a href="/landingPage">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-52"
-              onClick={handleOAuth}
-              disabled={loadingOAuth}
-            >
-              <span className="inline-flex items-center gap-2">
-                <img src="/images/Logo.png" alt="INAIGEM" className="h-4 w-4" />
-                Ver Plataforma
-              </span>
-            </Button>
-          </a>
+          <p className="my-2">© 2025 {nombre_sistema}. Todos los derechos reservados.</p>
+
+          <Link to="/landingpage" className="bg-celeste px-3 py-2 rounded-sm text-gray-700 hover:text-foreground transition-colors">
+            <span className="inline-flex items-center gap-2">
+              <img src="/images/Logo.png" alt="INAIGEM" className="h-4 w-4" />
+              Ver Plataforma
+            </span>
+          </Link>
+
+
 
         </div>
       </div>

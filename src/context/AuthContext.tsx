@@ -4,6 +4,7 @@ import type { SSOUser } from "@/types/auth";
 import { login as loginRemote, exchangeSSOCode, logoutRemote } from "@/services/authService";
 import api, { setRefreshedHandler, setUnauthorizedHandler } from "@/lib/api";
 import { STORAGE_KEYS } from "@/config/env";
+import { useLocation } from "react-router-dom";
 
 type MeUser = {
   id: number;
@@ -34,7 +35,17 @@ export const AuthContext = React.createContext<AuthContextType | null>(null);
 const LS_USER = STORAGE_KEYS.USER ?? "app:user";
 const LS_ROLES = "app:roles";
 const LS_PERMS = "app:perms";
+const PUBLIC_MATCHERS: (string | RegExp)[] = [
+  "/", "/landingpage", "/landingPage", "/login", "/auth/callback",
+  "/documentos", "/mapas", "/datasets",
+  /^\/recursos\/\d+$/, // /recursos/:id (detalle público)
+];
 
+function isPublicPath(pathname: string) {
+  return PUBLIC_MATCHERS.some((pat) =>
+    typeof pat === "string" ? pat === pathname : pat.test(pathname)
+  );
+}
 function safeParse<T>(raw: string | null, fallback: T): T {
   if (!raw) return fallback;
   try { return JSON.parse(raw) as T; } catch { return fallback; }
@@ -72,8 +83,8 @@ function flattenAuth(payload: any): { roles: string[]; permissions: string[] } {
   // permisos que vienen embebidos dentro de cada rol
   const permsFromRoles: string[] = Array.isArray(rawUser?.roles)
     ? rawUser.roles.flatMap((r: any) =>
-        Array.isArray(r?.permissions) ? r.permissions.map((p: any) => (typeof p === "string" ? p : p?.name)) : []
-      )
+      Array.isArray(r?.permissions) ? r.permissions.map((p: any) => (typeof p === "string" ? p : p?.name)) : []
+    )
       .filter(Boolean)
     : [];
 
@@ -105,6 +116,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const [permissions, setPermissions] = React.useState<string[]>(() => safeParse(localStorage.getItem(LS_PERMS), []));
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
+  const { pathname } = useLocation();
 
   // persistencia
   React.useEffect(() => {
@@ -141,7 +153,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   // bootstrap: intenta refrescar al montar, en focus, visibilitychange y cada 5 min
   React.useEffect(() => {
     let stopped = false;
-
+    const onPublic = isPublicPath(pathname);
+    if (onPublic) return;
     const run = async () => {
       try {
         const res = await refreshSession();
@@ -169,8 +182,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       document.removeEventListener("visibilitychange", onVisible);
       window.clearInterval(iv);
     };
-  }, []);
-  
+  }, [pathname]);
+
   const login = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
@@ -220,7 +233,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       localStorage.removeItem(LS_USER);
       localStorage.removeItem(LS_ROLES);
       localStorage.removeItem(LS_PERMS);
-      await logoutRemote().catch(() => {});
+      await logoutRemote().catch(() => { });
     } finally {
       setLoading(false);
     }

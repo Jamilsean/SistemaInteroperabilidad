@@ -1,10 +1,15 @@
  import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
-
+import 'swiper/swiper.css'
+import { BrowserRouter } from 'react-router-dom'
+import AppRoutes from './routes/AppRoutes.tsx'
+import { Toaster } from 'sonner'
 createRoot(document.getElementById('root')!).render(
- <AuthProvider>
-    <App />
-  </AuthProvider>
+  <BrowserRouter>
+    <AuthProvider>
+      <AppRoutes/>
+      <Toaster position="top-center" richColors />
+     </AuthProvider>
+</BrowserRouter>
 )
