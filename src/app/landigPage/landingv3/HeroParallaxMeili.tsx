@@ -3,12 +3,12 @@ import * as React from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
 import heroImg from "@/assets/images/huascaran.jpg";
-import HeroSearch from "./HeroSearch";
+ import HeroSearchMeili from "./HeroSearchMeili";
 type HeroParallaxProps = {
   className?: string; // Permitir clases adicionales
 };
 
-export default function HeroParallax({ className = "" }: HeroParallaxProps) {
+export default function HeroParallaxMeili({ className = "" }: HeroParallaxProps) {
   const ref = React.useRef<HTMLDivElement>(null);
 
   // Progreso del scroll relativo al hero
@@ -42,11 +42,11 @@ export default function HeroParallax({ className = "" }: HeroParallaxProps) {
       />
       {/* Contenido */}
       <div className="relative h-full  flex items-center  flex-col ">
-         <h1 className="text-3xl text-center uppercase pt-36 pb-32    lg:text-4xl font-bold mb-10 " style={{ color: "rgb(0,62,118)" }}>
+         <h1 className="text-3xl text-center uppercase pt-30 pb-15    lg:text-4xl font-bold mb-10 " style={{ color: "rgb(0,62,118)" }}>
             Encuentra Documentos, Mapas y Datasets del repositorio
             </h1>
         <div className="container mx-auto px-4 lg:px-8 w-full">
-          <HeroSearch />
+          <HeroSearchMeili />
         </div>
       </div>
     </section>

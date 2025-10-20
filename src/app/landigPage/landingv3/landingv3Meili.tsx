@@ -1,10 +1,10 @@
 "use client";
 import TopNav from "./TopNav";
- import HeroParallax from "./HeroParallax";
- import { Footer } from "@/components/landing/footer";
+  import { Footer } from "@/components/landing/footer";
 import ParallaxRowSectionMeili from "./ParallaxRowSectionMeili";
 import { useState, useEffect } from "react";
 import heroImg from "@/assets/images/fondo.jpg";
+import HeroParallaxMeili from "./HeroParallaxMeili";
 
 const REPO_DATASET = 1;
 const REPO_DOCUMENTO = 2;
@@ -43,7 +43,7 @@ export default function LandingPageV3Meili() {
       className="h-screen bg-background snap-y snap-mandatory overflow-y-scroll"
       style={{           backgroundImage: `url(${heroImg})`, backgroundSize: 'cover', backgroundAttachment: 'fixed' }}
     >        <TopNav />
-    <HeroParallax className="snap-start h-screen" />
+    <HeroParallaxMeili className="snap-start h-screen" />
       <ParallaxRowSectionMeili
         titulo="Documentos populares"
         paginate={paginate}

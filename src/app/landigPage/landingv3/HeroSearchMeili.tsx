@@ -12,11 +12,30 @@ import { allowOnlyMark } from "@/types/autocomplete";
 const REPO_DATASET = 1;
 const REPO_DOCUMENTO = 2;
 const REPO_MAPA = 3;
-
-// Ajusta esta ruta si tu detalle de documento es distinta
 const DOC_ROUTE_BASE = "/recursos";
 
-export default function HeroSearch() {
+// === helpers de fecha (acepta YYYY | YYYY-MM | YYYY-MM-DD) ===
+const RE_YEAR = /^\d{4}$/;
+const RE_YEAR_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+const RE_FULL = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+function isValidDateExpr(v: string): boolean {
+  return RE_YEAR.test(v) || RE_YEAR_MONTH.test(v) || RE_FULL.test(v);
+}
+
+/** Convierte una expresión de fecha a una comparable YYYY-MM-DD
+ *  - bound="min": completa con "-01-01" ó "-01"
+ *  - bound="max": completa con "-12-31" ó último día aproximado ("-12-31" para YYYY, "-31" para YYYY-MM)
+ *  No necesitamos exactitud de último día del mes para comparar rangos inclusive.
+ */
+function normalizeForCompare(v: string, bound: "min" | "max"): string {
+  if (RE_FULL.test(v)) return v;
+  if (RE_YEAR_MONTH.test(v)) return bound === "min" ? `${v}-01` : `${v}-31`;
+  if (RE_YEAR.test(v)) return bound === "min" ? `${v}-01-01` : `${v}-12-31`;
+  return v; // dejar tal cual si no matchea (igual fallará la validación)
+}
+
+export default function HeroSearchMeili() {
   const navigate = useNavigate();
   const [showAdvanced, setShowAdvanced] = React.useState(false);
 
@@ -27,13 +46,51 @@ export default function HeroSearch() {
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc");
   const [repo, setRepo] = React.useState<"all" | "dataset" | "documento" | "mapa">("all");
 
+  // fechas
+  const [dateFrom, setDateFrom] = React.useState<string>("");
+  const [dateTo, setDateTo] = React.useState<string>("");
+  const [dateError, setDateError] = React.useState<string>("");
+
   // autocomplete
   const { items: suggestions, open, setOpen, loading } = useAutocomplete(search, 8);
   const [activeIndex, setActiveIndex] = React.useState<number>(-1);
   const listRef = React.useRef<HTMLDivElement | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
+  const validateDates = (): boolean => {
+    setDateError("");
+
+    // si no hay fechas, nada que validar
+    const hasFrom = dateFrom.trim().length > 0;
+    const hasTo = dateTo.trim().length > 0;
+    if (!hasFrom && !hasTo) return true;
+
+    // formato
+    if (hasFrom && !isValidDateExpr(dateFrom.trim())) {
+      setDateError("La fecha 'Desde' debe ser YYYY, YYYY-MM o YYYY-MM-DD.");
+      return false;
+    }
+    if (hasTo && !isValidDateExpr(dateTo.trim())) {
+      setDateError("La fecha 'Hasta' debe ser YYYY, YYYY-MM o YYYY-MM-DD.");
+      return false;
+    }
+
+    // rango
+    if (hasFrom && hasTo) {
+      const a = normalizeForCompare(dateFrom.trim(), "min");
+      const b = normalizeForCompare(dateTo.trim(), "max");
+      if (a > b) {
+        setDateError("La fecha 'Desde' no puede ser mayor que 'Hasta'.");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const submit = () => {
+    if (!validateDates()) return;
+
     const params = new URLSearchParams();
     if (search.trim()) params.set("search", search.trim());
     params.set("search_in", searchIn);
@@ -44,6 +101,10 @@ export default function HeroSearch() {
       const id = repo === "dataset" ? REPO_DATASET : repo === "documento" ? REPO_DOCUMENTO : REPO_MAPA;
       params.set("repositorio_id", String(id));
     }
+
+    if (dateFrom.trim()) params.set("date_issued_from", dateFrom.trim());
+    if (dateTo.trim()) params.set("date_issued_to", dateTo.trim());
+
     navigate(`/buscar?${params.toString()}`);
     setOpen(false);
     setActiveIndex(-1);
@@ -92,14 +153,22 @@ export default function HeroSearch() {
       setActiveIndex(-1);
     }
   };
+  // const RE_YEAR_MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+  // function isValidYearMonth(v: string) {
+  //   return RE_YEAR_MONTH.test(v);
+  // }
 
+  // function isFromLTETo(from?: string, to?: string) {
+  //   if (!from || !to) return true;
+  //   return from <= to;
+  // }
   return (
     <section className="relative">
       <div className="relative z-10 py-5 lg:py-10 ">
         <div className="container mx-auto w-2/3 px-4 lg:px-8">
           <Card className="p-4 lg:p-6 rounded-2xl backdrop-blur bg-white/5">
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
-              <div className="relative  flex-1">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   ref={inputRef}
@@ -109,7 +178,7 @@ export default function HeroSearch() {
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
-                    setOpen(true); // abrir mientras escribe (si hay data el hook lo controla)
+                    setOpen(true);
                     setActiveIndex(-1);
                   }}
                   onKeyDown={onKeyDown}
@@ -145,9 +214,8 @@ export default function HeroSearch() {
                             onMouseEnter={() => setActiveIndex(idx)}
                             onMouseLeave={() => setActiveIndex(-1)}
                             onClick={() => goToSuggestion(sug.id)}
-                            className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                              isActive ? "bg-gray-100" : "hover:bg-gray-50"
-                            }`}
+                            className={`w-full text-left px-3 py-2 text-sm transition-colors ${isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                              }`}
                           >
                             <span
                               // Mostramos SOLO <mark> del backend
@@ -198,7 +266,8 @@ export default function HeroSearch() {
             </div>
 
             {showAdvanced && (
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-1">
+                {/* Buscar en */}
                 <div>
                   <div className="text-sm text-white mb-1">Buscar en</div>
                   <Select value={searchIn} onValueChange={(v) => setSearchIn(v as any)}>
@@ -214,6 +283,7 @@ export default function HeroSearch() {
                   </Select>
                 </div>
 
+                {/* Ordenar por */}
                 <div>
                   <div className="text-sm text-white mb-1">Ordenar por</div>
                   <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
@@ -230,6 +300,7 @@ export default function HeroSearch() {
                   </Select>
                 </div>
 
+                {/* Dirección */}
                 <div>
                   <div className="text-sm text-white mb-1">Dirección</div>
                   <Select value={sortDir} onValueChange={(v) => setSortDir(v as any)}>
@@ -243,6 +314,7 @@ export default function HeroSearch() {
                   </Select>
                 </div>
 
+                {/* Tipo (repositorio) */}
                 <div>
                   <div className="text-sm text-white mb-1">Tipo (repositorio)</div>
                   <Select value={repo} onValueChange={(v) => setRepo(v as any)}>
@@ -257,6 +329,39 @@ export default function HeroSearch() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Fecha desde */}
+                <div>
+                  <div className="text-sm text-white mb-1">Desde (AAAA-MM)</div>
+                  <input
+                    type="month"
+                    className="bg-white w-full h-10 rounded-md border px-3 text-sm"
+                    value={dateFrom}
+                    // opcional: limita máximo al "hasta"
+                    max={dateTo || undefined}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                  />
+                </div>
+
+                {/* Fecha hasta */}
+                <div>
+                  <div className="text-sm text-white mb-1">Hasta (AAAA-MM)</div>
+                  <input
+                    type="month"
+                    className="bg-white w-full h-10 rounded-md border px-3 text-sm"
+                    value={dateTo}
+                    // opcional: limita mínimo al "desde"
+                    min={dateFrom || undefined}
+                    onChange={(e) => setDateTo(e.target.value)}
+                  />
+                </div>
+
+                {/* error de fechas */}
+                {dateError && (
+                  <div className="col-span-full text-sm text-red-600 bg-white/80 rounded px-3 py-2">
+                    {dateError}
+                  </div>
+                )}
               </div>
             )}
           </Card>

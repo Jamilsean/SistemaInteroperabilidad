@@ -20,6 +20,7 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {  useNavigate } from "react-router-dom";
 import { listRepositorios } from "@/services/repositorioService";
+import { toast } from "sonner";
 
 // ---------- Helpers ----------
 function formatDateTime(iso?: string | null) {
@@ -314,13 +315,13 @@ const TableCosechas = forwardRef<TableCosechasRef>((_, ref) => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => alert(JSON.stringify(h, null, 2))}>
+                            <DropdownMenuItem onClick={() => toast(JSON.stringify(h, null, 2))}>
                               Ver detalles
                             </DropdownMenuItem>
-                            <DropdownMenuItem>Descargar reporte</DropdownMenuItem>
+                            {/* <DropdownMenuItem>Descargar reporte</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem >Reejecutar consulta</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Eliminar</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">Eliminar</DropdownMenuItem> */}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
