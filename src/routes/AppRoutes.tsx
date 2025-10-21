@@ -20,12 +20,13 @@ import RecursoDetailPage from "@/app/landigPage/RecursoDetailPage";
 import { Header } from "@/components/landing/header";
 import LandingPageV3Meili from "@/app/landigPage/landingv3/landingv3Meili";
 import BuscarPageMeili from "@/app/landigPage/landingv2/buscarPageMeili";
+import NotFound from "@/app/error/NotFound";
 
 export default function AppRoutes() {
   // OJO: aquí YA NO hay <BrowserRouter>. Solo rutas.
   return (
     <Routes>
-      <Route path="/landingPage" element={<LandingPageV3Meili />} />
+      <Route path="/" element={<LandingPageV3Meili />} />
       <Route path="/landingPageMeili" element={<LandingPageV3Meili />} />
 
       <Route path="/" element={<SSOEntry />} />
@@ -84,7 +85,7 @@ export default function AppRoutes() {
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

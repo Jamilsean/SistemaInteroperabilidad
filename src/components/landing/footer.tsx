@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { abreviatura_institucio, nombre_sistema } from "@/config/env"
 import { BookOpen, Map, Database, Facebook, Instagram, Youtube } from "lucide-react"
-
+ import { Link } from "react-router-dom"
+ 
+   
 export function Footer() {
   return (
     <footer className="bg-primary text-primary-foreground">
@@ -68,11 +70,11 @@ export function Footer() {
                   Datasets
                 </a>
               </li>
-              <li>
+              {/* <li>
                 <a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
                   API de Acceso
                 </a>
-              </li>
+              </li> */}
             </ul>
           </div>
 
@@ -114,10 +116,13 @@ export function Footer() {
                 placeholder="Tu email"
                 className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/60"
               /> */}
+               <Link to="/login">
+                
               <Button variant="secondary" className="w-full">
                 
                 Ingresar
               </Button>
+              </Link>
             </div>
           </div>
         </div>

@@ -168,10 +168,7 @@ const TableCosechas = forwardRef<TableCosechasRef>((_, ref) => {
     }
   };
   return (
-    <div className="flex flex-col">
-      {/* Barra de herramientas */}
-
-
+    <div className="flex flex-col"> 
       <form  >
         <div className="flex items-center gap-4 my-2">
           <div className="relative flex-1 max-w-sm">

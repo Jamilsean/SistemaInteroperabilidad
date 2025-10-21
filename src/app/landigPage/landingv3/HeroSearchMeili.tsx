@@ -332,7 +332,7 @@ export default function HeroSearchMeili() {
 
                 {/* Fecha desde */}
                 <div>
-                  <div className="text-sm text-white mb-1">Desde (AAAA-MM)</div>
+                  <div className="text-sm text-white mb-1">Desde (MM-AAAA)</div>
                   <input
                     type="month"
                     className="bg-white w-full h-10 rounded-md border px-3 text-sm"
@@ -345,7 +345,7 @@ export default function HeroSearchMeili() {
 
                 {/* Fecha hasta */}
                 <div>
-                  <div className="text-sm text-white mb-1">Hasta (AAAA-MM)</div>
+                  <div className="text-sm text-white mb-1">Hasta (MM-AAAA)</div>
                   <input
                     type="month"
                     className="bg-white w-full h-10 rounded-md border px-3 text-sm"

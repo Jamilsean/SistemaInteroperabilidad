@@ -2,9 +2,9 @@
 import React from "react";
 import type { SSOUser } from "@/types/auth";
 import { login as loginRemote, exchangeSSOCode, logoutRemote } from "@/services/authService";
-import api, { setRefreshedHandler, setUnauthorizedHandler } from "@/lib/api";
+import api, { refreshOnce, setRefreshedHandler, setUnauthorizedHandler } from "@/lib/api";
 import { STORAGE_KEYS } from "@/config/env";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 type MeUser = {
   id: number;
@@ -41,6 +41,7 @@ const PUBLIC_MATCHERS: (string | RegExp)[] = [
   /^\/recursos\/\d+$/, // /recursos/:id (detalle público)
 ];
 
+
 function isPublicPath(pathname: string) {
   return PUBLIC_MATCHERS.some((pat) =>
     typeof pat === "string" ? pat === pathname : pat.test(pathname)
@@ -66,7 +67,7 @@ const normalizeUser = (raw: any): MeUser | null => {
 };
 // const hasAdmin = (roles: string[]) => roles.some(r => r.toLowerCase() === "admin");
 
-// aplanar roles/permissions desde payload del backend
+// roles/permissions desde payload del backend
 function flattenAuth(payload: any): { roles: string[]; permissions: string[] } {
   const rawUser = payload?.user ?? payload;
 
@@ -102,10 +103,13 @@ const provisionalFromEmail = (email: string): MeUser => {
 
 // ---------- refresh actual ----------
 async function refreshSession(): Promise<{ user: MeUser | null; roles: string[]; permissions: string[] }> {
-  // tu API es POST /auth/refresh
-  const { data } = await api.post("/auth/refresh"); // devuelve { access_token, user{...} }
-  const u = normalizeUser(data?.user);
-  const flat = flattenAuth(data);
+  const resp = await refreshOnce();
+  if (!resp) {
+    return { user: null, roles: [], permissions: [] };
+  }
+  const payload = resp.data ?? resp;
+  const u = normalizeUser(payload?.user);
+  const flat = flattenAuth(payload);
   return { user: u, roles: flat.roles, permissions: flat.permissions };
 }
 
@@ -117,6 +121,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
   const { pathname } = useLocation();
+  const navigate = useNavigate(); // ⬅️
 
   // persistencia
   React.useEffect(() => {
@@ -128,6 +133,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
   // hooks del interceptor: cuando el backend refresca, actualiza
   React.useEffect(() => {
+
     setRefreshedHandler((payload: any) => {
       const u = normalizeUser(payload?.user ?? payload);
       if (u) setUser(u);
@@ -135,46 +141,48 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       setRoles(flat.roles);
       setPermissions(flat.permissions);
     });
+
     setUnauthorizedHandler(() => {
-      // solo cuando realmente 401 en refresh
+      // ⬅️ limpiar y redirigir cuando el refresh REAL falla
       setUser(null);
       setRoles([]);
       setPermissions([]);
       localStorage.removeItem(LS_USER);
-      localStorage.removeItem(LS_ROLES);
-      localStorage.removeItem(LS_PERMS);
+      localStorage.removeItem("app:roles");
+      localStorage.removeItem("app:perms");
+      navigate("/login?expired=1", { replace: true });
     });
+
     return () => {
       setRefreshedHandler(null);
       setUnauthorizedHandler(null);
     };
-  }, []);
+  }, [navigate]);
 
   // bootstrap: intenta refrescar al montar, en focus, visibilitychange y cada 5 min
   React.useEffect(() => {
     let stopped = false;
-    const onPublic = isPublicPath(pathname);
-    if (onPublic) return;
+    if (isPublicPath(pathname)) return;
+
     const run = async () => {
       try {
-        const res = await refreshSession();
+        const res = await refreshSession(); // ahora no duplica
         if (stopped) return;
         if (res.user) setUser(res.user);
-        setRoles(res.roles);
-        setPermissions(res.permissions);
+        if (res.roles.length) setRoles(res.roles);
+        if (res.permissions.length) setPermissions(res.permissions);
       } catch {
-        // si falla, no borres lo que hay en memoria; el interceptor limpiará si 401 real
+        // deja que el interceptor maneje un 401 duro
       }
     };
 
-    run(); // al montar
+    run(); // al montar / cambiar ruta
 
     const onFocus = () => run();
     const onVisible = () => { if (document.visibilityState === "visible") run(); };
-
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisible);
-    const iv = window.setInterval(run, 5 * 60 * 1000); // 5 min
+    const iv = window.setInterval(run, 5 * 60 * 1000);
 
     return () => {
       stopped = true;
@@ -188,7 +196,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setLoading(true);
     setError(null);
     try {
-      const res = await loginRemote(email, password); 
+      const res = await loginRemote(email, password);
       // mapea inmediatamente
       const u = normalizeUser(res?.user);
       setUser(u ?? provisionalFromEmail(email.trim()));
@@ -252,5 +260,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setUser,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{
+    user, roles, permissions, loading, error,
+    login, loginWithSSO, logout,
+    token: null, setUser,
+  }}>{children}</AuthContext.Provider>;
 };
+

@@ -36,8 +36,8 @@ export default function RowMeili({ titulo, repositorioId, verMasTo, perPage = 12
 
       <div className="container grid content-center mx-auto px-4 lg:px-8 h-full ">
         <div className="flex items-end justify-between mb-3  ">
-          <h2 className="text-2xl  uppercase font-semibold p-2  border-l-8 border-[#00B188] ">{titulo}</h2>
-          <Button variant="link" asChild>
+          <h2 className="text-2xl  uppercase font-bold p-2  border-l-8 border-[#00B188] text-azul-secondary ">{titulo}</h2>
+          <Button variant="link" className="underline underline-offset-4 text-white hover:bg-amber-50 hover:text-azul" asChild>
             <Link to={verMasTo}>Ver más</Link>
           </Button>
         </div>

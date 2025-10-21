@@ -46,6 +46,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Tipografía por defecto (variable para uso global) */
+  --font-sans: 'Flama-Basic', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
 .dark {
@@ -147,8 +149,62 @@
 }
 
 /* Aplicar la tipografía globalmente */
+/* Variantes de Flama */
+@font-face {
+  font-family: 'Flama';
+  src: url('/tipografia/Flama-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Flama';
+  src: url('/tipografia/Flama Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Flama';
+  src: url('/tipografia/Flama-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Flama';
+  src: url('/tipografia/Flama-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Flama';
+  src: url('/tipografia/Flama Italic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Flama';
+  src: url('/tipografia/Flama Bold Italic.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Aplicar la tipografía globalmente usando la variable */
+:root {
+  --font-sans: 'Flama', 'Flama-Basic', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
 body {
-  font-family: 'Flama-Basic', sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* Animaciones personalizadas */

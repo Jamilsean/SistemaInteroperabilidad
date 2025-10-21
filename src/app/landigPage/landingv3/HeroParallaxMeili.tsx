@@ -2,8 +2,9 @@
 import * as React from "react";
 import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
-import heroImg from "@/assets/images/huascaran.jpg";
+import heroImg from "@/assets/images/huascaran.avif";
  import HeroSearchMeili from "./HeroSearchMeili";
+import { nombre_sistema } from "@/config/env";
 type HeroParallaxProps = {
   className?: string; // Permitir clases adicionales
 };
@@ -14,7 +15,7 @@ export default function HeroParallaxMeili({ className = "" }: HeroParallaxProps)
   // Progreso del scroll relativo al hero
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ["start start", "end start"], // 0 cuando el top del hero toca el top viewport; 1 cuando el bottom toca el top
+    offset: ["start start", "end start"], 
   });
 
   // Parallax: la capa de imagen se desplaza hacia arriba a medida que scrolleas
@@ -42,8 +43,8 @@ export default function HeroParallaxMeili({ className = "" }: HeroParallaxProps)
       />
       {/* Contenido */}
       <div className="relative h-full  flex items-center  flex-col ">
-         <h1 className="text-3xl text-center uppercase pt-30 pb-15    lg:text-4xl font-bold mb-10 " style={{ color: "rgb(0,62,118)" }}>
-            Encuentra Documentos, Mapas y Datasets del repositorio
+         <h1 className="text-3xl text-center uppercase pt-24 pb-15    lg:text-4xl font-bold mb-10 text-azul-secondary" >
+            {nombre_sistema} <span className="font-extralight flex">Encuentra Documentos, Mapas y Datasets del repositorio</span>
             </h1>
         <div className="container mx-auto px-4 lg:px-8 w-full">
           <HeroSearchMeili />

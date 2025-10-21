@@ -6,70 +6,85 @@ type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 const AUTH_ENDPOINTS = ["/auth/login", "/auth/logout", "/auth/refresh", "/auth/callback"];
 const isAuthEndpoint = (url?: string) => !!url && AUTH_ENDPOINTS.some(e => url.endsWith(e));
 
-/** Instancia cookies-only */
 export const api = axios.create({
-  baseURL: API_BASE_URL,    
-  withCredentials: true,    
+  baseURL: API_BASE_URL,
+  withCredentials: true,
   timeout: 20000,
-  // Si tu backend usa CSRF/XSRF cookie -> header, habilita:
-  // xsrfCookieName: "XSRF-zTOKEN",
+  // Si tu backend usa CSRF cookie->header (Laravel Sanctum, etc.), descomenta:
+  // xsrfCookieName: "XSRF-TOKEN",
   // xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
-/** Callbacks para integrarse con el AuthContext (opcionales) */
+/** Callbacks hacia AuthContext */
 let onRefreshed: ((payload: any) => void) | null = null;
 let onUnauthorized: (() => void) | null = null;
 export const setRefreshedHandler = (fn: ((payload: any) => void) | null) => { onRefreshed = fn; };
 export const setUnauthorizedHandler = (fn: (() => void) | null) => { onUnauthorized = fn; };
 
-/** Interceptor: request */
+/** Request interceptor */
 api.interceptors.request.use((config) => {
   config.headers = config.headers ?? {};
   (config.headers as any).Accept = "application/json";
-  
   return config;
 });
 
-/** Interceptor: response + refresh con cola */
-let isRefreshing = false;
-let queue: { resolve: (v: any) => void; reject: (r?: any) => void; config: RetriableConfig }[] = [];
-const flush = (err: any | null) => { const q = [...queue]; queue = []; q.forEach(({ resolve, reject, config }) => err ? reject(err) : resolve(api.request(config))); };
+/** ---- Refresh controlado (una sola vez) ---- */
+let _refreshPromise: Promise<any> | null = null;
+let _lastRefreshAt = 0;
+const REFRESH_COOLDOWN_MS = 10_000; // evita ráfagas (10s)
 
+export async function refreshOnce(): Promise<any> {
+  const now = Date.now();
+  if (_refreshPromise) return _refreshPromise;
+  if (now - _lastRefreshAt < REFRESH_COOLDOWN_MS) {
+    // Demasiado pronto: no dispares otro hit al backend
+    return null;
+  }
+  _refreshPromise = api.post("/auth/refresh")
+    .then((resp) => {
+      _lastRefreshAt = Date.now();
+      onRefreshed?.(resp.data);
+      return resp;
+    })
+    .finally(() => { _refreshPromise = null; });
+  return _refreshPromise;
+}
+
+/** Cola para reintentar peticiones que fallaron con 401 mientras se refresca */
+let queue: { resolve: (v: any) => void; reject: (r?: any) => void; config: RetriableConfig }[] = [];
+const flush = (err: any | null) => {
+  const q = [...queue];
+  queue = [];
+  q.forEach(({ resolve, reject, config }) => err ? reject(err) : resolve(api.request(config)));
+};
+
+/** Response interceptor con refreshOnce() */
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError) => {
     const status = error.response?.status;
     const cfg = (error.config || {}) as RetriableConfig;
 
-    // No refrescar si no es 401, si ya reintentamos, o si falló en /auth/*
+    // No refresques en  non-401, ya reintentado, o endpoints /auth/*
     if (status !== 401 || cfg._retry || isAuthEndpoint(cfg.url)) {
       return Promise.reject(error);
     }
     cfg._retry = true;
 
-    if (isRefreshing) {
+    // Si ya hay un refresh en curso, encola esta petición
+    if (_refreshPromise) {
       return new Promise((resolve, reject) => queue.push({ resolve, reject, config: cfg }));
     }
 
-    isRefreshing = true;
     try {
-      // El backend debe leer cookies y devolver nuevas cookies + (opcional) user/roles/permisos
-      const resp = await api.post("/auth/refresh");
-      onRefreshed?.(resp.data);   // notifica al AuthContext si quieres actualizar user/roles
-
-      flush(null);
-      return api.request(cfg);    // reintenta la petición original
-    } catch (err) {
+      await refreshOnce();     // una sola llamada real al backend
+      flush(null);             // libera la cola
+      return api.request(cfg); // reintenta la original
+    } catch (err: any) {
       flush(err);
-
-      // ⬇️ ANTES: onUnauthorized?.();  (siempre)
-      const st = (err as any)?.response?.status;
-      if (st === 401 || st === 419) {
-        onUnauthorized?.();            // solo si realmente NO hay sesión válida
-      }
+      const st = err?.response?.status;
+      if (st === 401 || st === 419) onUnauthorized?.();
       return Promise.reject(err);
-    } finally {
-      isRefreshing = false;
     }
   }
 );

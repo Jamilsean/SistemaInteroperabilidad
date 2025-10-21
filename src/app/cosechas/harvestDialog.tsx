@@ -14,7 +14,7 @@ import { listRepositorios } from "@/services/repositorioService";
 import type { Repositorios } from "@/types/repositorios";
 
 type Props = {
-    onDone?: () => void;   // opcional: para refrescar la tabla luego de la cosecha
+    onDone?: () => void;   
 };
 
 
@@ -51,7 +51,7 @@ export default function HarvestDialog({ onDone }: Props) {
         try {
             await startHarvest(repo);
             onDone?.();
-            // Cerrar el diálogo “a mano” (truco con click al botón de close)
+            
             const closeBtn = document.getElementById("harvest-dialog-close");
             closeBtn?.click();
 

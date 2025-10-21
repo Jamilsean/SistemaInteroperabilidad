@@ -36,7 +36,6 @@ export default function BuscarPageMeili() {
     (params.get("search_in") as any) || "title"
   );
 
-  // ⬇️ incluye 'date_issued' en sort_by
   const [sortBy, setSortBy] = React.useState<"title" | "autores" | "abstract" | "key_words" | "views" | "date_issued">(
     ((params.get("sort_by") as any) || "views") as any
   );
@@ -208,7 +207,26 @@ export default function BuscarPageMeili() {
               </SelectContent>
             </Select>
 
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+
+
+            <Select
+              value={String(repoId ?? "all")}
+              onValueChange={(v) => setRepoId(v === "all" ? null : Number(v))}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Seleccionar repositorio</SelectItem>
+                <SelectItem value={String(REPO_DOCUMENTO)}>Documentos</SelectItem>
+                <SelectItem value={String(REPO_MAPA)}>Mapas</SelectItem>
+                <SelectItem value={String(REPO_DATASET)}>Datasets</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
+              <div>
+                <Label>Ordernar por:</Label>
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
@@ -222,37 +240,6 @@ export default function BuscarPageMeili() {
                 <SelectItem value="date_issued">Fecha (date_issued)</SelectItem>
               </SelectContent>
             </Select>
-
-
-
-            <Select
-              value={String(repoId ?? "all")}
-              onValueChange={(v) => setRepoId(v === "all" ? null : Number(v))}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value={String(REPO_DOCUMENTO)}>Documentos</SelectItem>
-                <SelectItem value={String(REPO_MAPA)}>Mapas</SelectItem>
-                <SelectItem value={String(REPO_DATASET)}>Datasets</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
-              <div>
-                <Label>Ordernar por:</Label>
-                <Select value={searchIn} onValueChange={(v) => setSearchIn(v as any)}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Campo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="title">Título</SelectItem>
-                    <SelectItem value="autores">Autores</SelectItem>
-                    <SelectItem value="abstract">Resumen</SelectItem>
-                    <SelectItem value="key_words">Palabras clave</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div>
                 <Label>Orden:</Label>
