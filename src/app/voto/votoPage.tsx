@@ -62,9 +62,19 @@ export default function VotoPage() {
     }
   };
 
-  const handleDenegar = () => {
-    // Solo redirige a la principal
-    navigate("/", { replace: true });
+  const handleDenegar  = async () => {
+    if (!token) return;
+    try {
+      // Según tu especificación: ACEPTAR envía voto = "0"
+      await registrarVoto(token, { voto: "1", justificacion });
+      toast.success("Voto registrado correctamente", {
+        icon: <CheckCircle2 className="text-green-600" />,
+      });
+      navigate("/", { replace: true });
+    } catch (e: any) {
+      const err = parseAxiosError(e);
+      toast.error(err.message || "No se pudo registrar el voto");
+    }
   };
 
   if (loading) {
