@@ -168,24 +168,24 @@ export default function LoginPage() {
                   <Button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                          className="bg-transparent text-gray-600   p-1 rounded-md hover:bg-gray-200 "
+                    className="bg-transparent text-gray-600   p-1 rounded-md hover:bg-gray-200 "
 
                     aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                     aria-pressed={showPassword}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
-                 
+
                 </div>
-                 <Button
-                    type="button"
-                    variant={"blue"}
-                    onClick={handleLogin}
-                    disabled={submitting}
-                    className="w-full mt-2"
-                  >
-                    {submitting ? "Ingresando…" : "Entrar"}
-                  </Button>
+                <Button
+                  type="button"
+                  variant={"blue"}
+                  onClick={handleLogin}
+                  disabled={submitting}
+                  className="w-full mt-2"
+                >
+                  {submitting ? "Ingresando…" : "Entrar"}
+                </Button>
                 {errorMsg && (
                   <div
                     role="alert"
@@ -200,7 +200,9 @@ export default function LoginPage() {
           </CardContent>
 
         </Card>
-
+        <Button variant="link" className="px-0" onClick={() => navigate("/forgot-password")}>
+          ¿Olvidaste tu contraseña?
+        </Button>
         <div className="mt-10 text-center text-sm text-gray-500">
           <p className="my-2">© 2025 {nombre_sistema}. Todos los derechos reservados.</p>
 

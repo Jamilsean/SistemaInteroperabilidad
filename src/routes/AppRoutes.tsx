@@ -21,11 +21,13 @@ import { Header } from "@/components/landing/header";
 import LandingPageV3Meili from "@/app/landigPage/landingv3/landingv3Meili";
 import BuscarPageMeili from "@/app/landigPage/landingv2/buscarPageMeili";
 import NotFound from "@/app/error/NotFound";
+import ForgotPasswordPage from "@/app/ForgotPassword";
 
 export default function AppRoutes() {
    return (
     <Routes>
       <Route path="/" element={<LandingPageV3Meili />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/landingPageMeili" element={<LandingPageV3Meili />} />
       <Route path="/" element={<SSOEntry />} />
       <Route element={<Header />}>

@@ -57,3 +57,21 @@ export type SSOCallbackPayload = {
   roles?: Array<string | { name: string }>;
   permissions?: Array<string | { name: string }>;
 };
+
+// PASSWORD 
+export type SendPasswordCodePayload = {
+  email: string;
+};
+export type SendPasswordCodeResponse = {
+  message: string;  
+};
+
+export type VerifyPasswordCodePayload = {
+  email: string;
+  code: string;
+  password: string;
+  password_confirmation: string;
+};
+export type VerifyPasswordCodeResponse = {
+  message: string;  
+};
