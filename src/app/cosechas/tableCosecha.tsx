@@ -98,7 +98,7 @@ const TableCosechas = forwardRef<TableCosechasRef>((_, ref) => {
   const [selectedRepoValue, setSelectedRepoValue] = useState<string>("");
 
   const [err, setErr] = useState("");
-  const [rows, setRows] = useState<Harvest[]>([]); // 👈 usa el tipo unificado
+  const [rows, setRows] = useState<Harvest[]>([]); 
   const fetchData = async (page = 1, por_pagina = per_page,id_repo=idRepositorio) => {
     setLoading(true);
     setErr("");
@@ -223,7 +223,7 @@ const TableCosechas = forwardRef<TableCosechasRef>((_, ref) => {
                   <TableHead className="w-[100px]">#</TableHead>
                   <TableHead>Repositorio</TableHead>
                   <TableHead>Fechas</TableHead>
-                  <TableHead>Registros</TableHead>
+                  <TableHead  >Registros</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -264,9 +264,9 @@ const TableCosechas = forwardRef<TableCosechasRef>((_, ref) => {
                         </div>
                       </TableCell>
 
-                      <TableCell>
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-2 gap-2 text-xs">
+                      <TableCell  >
+                        <div className="space-y-1 w-28" >
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-0 gap-y-1 md:gap-2 text-xs">
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">Total:</span>
                               <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">

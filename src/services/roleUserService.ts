@@ -6,16 +6,16 @@ import type {
   ListRolesResponse,
 } from "@/types/roleUser";
 
-// === Usuario: roles & permisos actuales ===
+//  Usuario: roles & permisos actuales 
 export async function getUserRolesPermissions(userId: number): Promise<GetUserRolesPermsResponse> {
   const { data } = await api.get(`/users/${userId}/roles-permissions`);
   return data;
 }
 
-// === Acciones sobre roles del usuario ===
+//  Acciones sobre roles del usuario 
 export async function assignUserRole(userId: number, role: string) {
   const { data } = await api.post(`/users/${userId}/roles-permissions/assign-role`, { role });
-  return data; // { success?, message? }
+  return data;  
 }
 
 export async function removeUserRole(userId: number, role: string) {
@@ -23,7 +23,7 @@ export async function removeUserRole(userId: number, role: string) {
   return data;
 }
 
-// === Acciones sobre permisos del usuario ===
+//  Acciones sobre permisos del usuario 
 export async function giveUserPermission(userId: number, permission: string) {
   const { data } = await api.post(`/users/${userId}/roles-permissions/give-permission`, { permission });
   return data;
@@ -34,7 +34,7 @@ export async function revokeUserPermission(userId: number, permission: string) {
   return data;
 }
 
-// === Catálogos para UI ===
+//  Catálogos para UI 
 export async function listAllPermissions(): Promise<ListPermissionsResponse> {
   const { data } = await api.get(`/permissions`);
   return data;

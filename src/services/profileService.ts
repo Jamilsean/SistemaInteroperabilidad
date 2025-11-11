@@ -8,7 +8,7 @@ import type {
   UpdateProfileOk,
 } from "@/types/user";
 
-const BASE = "/auth"; // Tu base ya incluye /api/v1 en api.baseURL
+const BASE = "/auth";
 
 export async function getMe(): Promise<MeResponse> {
   const { data } = await api.post<MeResponse>(`${BASE}/me`);
@@ -25,7 +25,6 @@ export async function updateMyPassword(
 export async function updateMyProfile(
   payload: UpdateProfilePayload
 ): Promise<UpdateProfileOk> {
-  // si tu backend requiere PUT/PATCH, cambia aquí:
   const { data } = await api.put<UpdateProfileOk>(`${BASE}/profile`, payload);
   return data;
 }

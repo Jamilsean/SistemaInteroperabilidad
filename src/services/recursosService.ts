@@ -38,12 +38,11 @@ export const getRecursosWithMeilisearch = async (
   sort_by: "title" | "autores" | "abstract" | "key_words" | "views" | "date_issued" = "title",
   sort_dir: "asc" | "desc" = "asc",
   date_issued_from?: string | null,
-  date_issued_to?: string | null     // <-- NUEVO
+  date_issued_to?: string | null
 ): Promise<RecursosResponse> => {
   const params: any = {
     page,
     per_page,
-    // repositorio_id solo se envía si hay valores
     ...(repositorio_id?.length ? { repositorio_id } : {}),
     search_in,
     sort_by,

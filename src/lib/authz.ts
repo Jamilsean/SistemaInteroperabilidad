@@ -1,9 +1,9 @@
 // src/lib/authz.ts
 export type CanOptions = {
-  anyOf?: string[];     // permisos (basta uno)
-  allOf?: string[];     // permisos (todos)
-  rolesAnyOf?: string[]; // roles (basta uno)
-  rolesAllOf?: string[]; // roles (todos)
+  anyOf?: string[];     
+  allOf?: string[];     
+  rolesAnyOf?: string[];  
+  rolesAllOf?: string[];  
 };
 
 export function makeCan(permissions: string[] = [], roles: string[] = []) {

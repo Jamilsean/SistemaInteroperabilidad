@@ -27,10 +27,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ⬇️ SIEMPRE arrays por defecto
-  const { user, loading, logout, permissions = [], roles: rolesRaw = [] } = useAuth();
-  // normaliza roles a lowercase string[]
-  const roles = React.useMemo(
+   const { user, loading, logout, permissions = [], roles: rolesRaw = [] } = useAuth();
+   const roles = React.useMemo(
     () =>
       (Array.isArray(rolesRaw) ? rolesRaw : [])
         .map((r: any) => (typeof r === "string" ? r : r?.name))
@@ -44,10 +42,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { can } = React.useMemo(() => makeCan(permissions, roles), [permissions, roles]);
   const isAdmin = React.useMemo(() => roles.includes("admin"), [roles]);
 
-  // LOGS de diagnóstico
-  React.useEffect(() => {
-    // Estos logs te dicen exactamente qué ve el Sidebar
-    console.groupCollapsed("[Sidebar] auth snapshot");
+   React.useEffect(() => {
+     console.groupCollapsed("[Sidebar] auth snapshot");
     console.log("loading:", loading);
     console.log("user:", user);
     console.log("roles (raw):", rolesRaw);

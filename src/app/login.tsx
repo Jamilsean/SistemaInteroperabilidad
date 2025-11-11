@@ -11,8 +11,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { nombre_institucion, nombre_sistema, REDIRECT_SSO } from "@/config/env";
 import { toast } from "sonner";
 import { parseAxiosError } from "@/lib/http-error";
-
+import { Eye, EyeOff } from "lucide-react";
 export default function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -153,11 +154,11 @@ export default function LoginPage() {
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Contraseña
                 </Label>
-                <div className="relative">
+                <div className="relative flex">
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     placeholder="**********"
                     value={password}
@@ -166,6 +167,18 @@ export default function LoginPage() {
                   />
                   <Button
                     type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                          className="bg-transparent text-gray-600   p-1 rounded-md hover:bg-gray-200 "
+
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    aria-pressed={showPassword}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                 
+                </div>
+                 <Button
+                    type="button"
                     variant={"blue"}
                     onClick={handleLogin}
                     disabled={submitting}
@@ -173,7 +186,6 @@ export default function LoginPage() {
                   >
                     {submitting ? "Ingresando…" : "Entrar"}
                   </Button>
-                </div>
                 {errorMsg && (
                   <div
                     role="alert"
@@ -192,7 +204,7 @@ export default function LoginPage() {
         <div className="mt-10 text-center text-sm text-gray-500">
           <p className="my-2">© 2025 {nombre_sistema}. Todos los derechos reservados.</p>
 
-          <Link to="/landingpage" className="bg-celeste px-3 py-2 rounded-sm text-gray-700 hover:text-foreground transition-colors">
+          <Link to="/" className="bg-celeste px-3 py-2 rounded-sm text-gray-700 hover:text-foreground transition-colors">
             <span className="inline-flex items-center gap-2">
               <img src="/images/Logo.png" alt="INAIGEM" className="h-4 w-4" />
               Ver Plataforma

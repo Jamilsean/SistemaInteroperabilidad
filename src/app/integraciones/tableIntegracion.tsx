@@ -15,7 +15,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { parseAxiosError } from "@/lib/http-error";
-import { eliminarRelacion, getRelacionesQuery } from "@/services/relacionService"; // 👈 usa la nueva
+import { eliminarRelacion, getRelacionesQuery } from "@/services/relacionService";
 import type { Relacion } from "@/types/relaciones";
 import { Search, Trash } from "lucide-react";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
@@ -39,7 +39,7 @@ function formatDateTime(iso?: string | null) {
 
 const TableIntegracion = forwardRef<TableIntegracionRef>((_, ref) => {
   const reqSeqRef = useRef(0);
-const { can } = useAuthZ();
+  const { can } = useAuthZ();
   const [relaciones, setRelaciones] = useState<Relacion[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -81,41 +81,41 @@ const { can } = useAuthZ();
   useImperativeHandle(ref, () => ({ reload: () => fetchRelaciones(currentPage) }), [currentPage]);
 
   const fetchRelaciones = async (page = 1) => {
-  const mySeq = ++reqSeqRef.current; 
-  setLoading(true);
-  try {
-    const data = await getRelacionesQuery({
-      page,
-      per_page: perPage,
-      estado_aprobacion: estado === "all" ? undefined : estado,
-      search: debouncedSearch,
-      search_in: searchIn,      
-      sort_by: sortBy,
-      sort_dir: sortDir,
-    });
+    const mySeq = ++reqSeqRef.current;
+    setLoading(true);
+    try {
+      const data = await getRelacionesQuery({
+        page,
+        per_page: perPage,
+        estado_aprobacion: estado === "all" ? undefined : estado,
+        search: debouncedSearch,
+        search_in: searchIn,
+        sort_by: sortBy,
+        sort_dir: sortDir,
+      });
 
-     if (mySeq !== reqSeqRef.current) return;
+      if (mySeq !== reqSeqRef.current) return;
 
-    setRelaciones(data.data);
-    setCurrentPage(data.current_page);
-    setLastPage(data.last_page);
-    setCantidadRegistro(data.total);
-    setCantidadRegistroEnVista(data.to);
-  } catch (error) {
-    if (mySeq === reqSeqRef.current) console.error(error);
-  } finally {
-    if (mySeq === reqSeqRef.current) setLoading(false);
-  }
-};
+      setRelaciones(data.data);
+      setCurrentPage(data.current_page);
+      setLastPage(data.last_page);
+      setCantidadRegistro(data.total);
+      setCantidadRegistroEnVista(data.to);
+    } catch (error) {
+      if (mySeq === reqSeqRef.current) console.error(error);
+    } finally {
+      if (mySeq === reqSeqRef.current) setLoading(false);
+    }
+  };
 
-   useEffect(() => {
+  useEffect(() => {
     fetchRelaciones(currentPage);
-   }, [currentPage]);
+  }, [currentPage]);
 
-   useEffect(() => {
+  useEffect(() => {
     if (currentPage !== 1) setCurrentPage(1);
     else fetchRelaciones(1);
-   }, [debouncedSearch, estado, searchIn, sortBy, sortDir, perPage]);
+  }, [debouncedSearch, estado, searchIn, sortBy, sortDir, perPage]);
 
   async function handleDelete(id: number) {
     const p = (async () => {
@@ -164,8 +164,8 @@ const { can } = useAuthZ();
   return (
     <div className="flex flex-col">
       {/* Toolbar de filtros (responsive) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 my-2">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row gap-3 my-2">
+        <div className="relative flex-auto">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar relación…"
@@ -207,35 +207,34 @@ const { can } = useAuthZ();
 
 
         {/* Orden */}
-        <div className="grid grid-cols-2 gap-2">
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Ordenar por" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="updated_at">Actualización</SelectItem>
-                <SelectItem value="created_at">Creación</SelectItem>
-                <SelectItem value="confianza">Confianza</SelectItem>
-                <SelectItem value="tipo_relacion">Tipo relación</SelectItem>
-                <SelectItem value="estado_aprobacion">Estado aprobación</SelectItem>
-                <SelectItem value="id">ID</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+        <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Ordenar por" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="updated_at">Actualización</SelectItem>
+              <SelectItem value="created_at">Creación</SelectItem>
+              <SelectItem value="confianza">Confianza</SelectItem>
+              <SelectItem value="tipo_relacion">Tipo relación</SelectItem>
+              <SelectItem value="estado_aprobacion">Estado aprobación</SelectItem>
+              <SelectItem value="id">ID</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
 
-          <Select value={sortDir} onValueChange={(v) => setSortDir(v as any)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Dirección" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="desc">Desc</SelectItem>
-                <SelectItem value="asc">Asc</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={sortDir} onValueChange={(v) => setSortDir(v as any)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Dirección" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="desc">Desc</SelectItem>
+              <SelectItem value="asc">Asc</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+
 
         {/* Per page */}
         <Select value={String(perPage)} onValueChange={(v) => setPerPage(Number(v))}>
@@ -360,15 +359,15 @@ const { can } = useAuthZ();
             })}
           </div>
 
-          {/* ——— Vista desktop: Tabla ——— */}
+          {/* ——— Vista: Tabla ——— */}
           <div className="hidden md:block overflow-x-auto">
-            <Table className="min-w-[960px]">
+            <Table className="  ">
               <TableHeader>
-                <TableRow className="bg-gray-50 border-b">
-                  <TableHead className="font-semibold text-gray-900 px-6 py-4 w-[300px]">Recurso Origen</TableHead>
-                  <TableHead className="font-semibold text-gray-900 px-6 py-4 w-[300px]">Recurso Destino</TableHead>
-                  <TableHead className="font-semibold text-gray-900 px-6 py-4 w-[160px]">Detalle</TableHead>
-                    {can({ anyOf: ["relaciones.delete"] }) && (<TableHead className="font-semibold text-gray-900 px-6 py-4 w-[120px]">Acciones</TableHead> )}
+                <TableRow className="bg-gray-50 border-b  overflow-x-auto">
+                  <TableHead className=" font-semibold text-gray-900 px-6 py-4  sm:px-4 md:px-6 sm:w-[220px] md:w-[250px]">Recurso Origen</TableHead>
+                  <TableHead className="font-semibold text-gray-900  px-6 py-4  sm:px-4 md:px-6 sm:w-[220px] md:w-[250px]">Recurso Destino</TableHead>
+                  <TableHead className="font-semibold text-gray-900 px-6 py-4 w-[120px]">Detalle</TableHead>
+                  {can({ anyOf: ["relaciones.delete"] }) && (<TableHead className="font-semibold text-gray-900 px-6 py-4 w-[120px]">Acciones</TableHead>)}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -386,15 +385,15 @@ const { can } = useAuthZ();
                   const estadoAprob = getEstadoAprob(h);
                   return (
                     <TableRow key={h.id} className="border-b hover:bg-gray-50/5">
-                      <TableCell className="px-3 py-3 align-top">
-                        <div className="space-y-3">
-                          <div className="text-sm font-medium text-gray-900 max-w-[250px] whitespace-normal break-words">
-                            {h.recurso_origen.title}
+                       <TableCell className="  px-1 py-2 align-top  ">
+                        <div className="  space-y-3">
+                          <div className="line-clamp-4 text-sm font-medium text-gray-900   whitespace-normal break-words">
+                              {h.recurso_origen.title}
                           </div>
                           <div className="text-xs text-gray-600">
                             <span className="font-medium">Autores</span>
                           </div>
-                          <div className="text-xs font-medium text-blue-600 max-w-[250px] whitespace-normal break-words">
+                          <div className="text-xs font-medium text-blue-600 max-w-[220px] whitespace-normal break-words">
                             {h.recurso_origen.autores}
                           </div>
                           <div className="pt-1">
@@ -405,15 +404,15 @@ const { can } = useAuthZ();
                         </div>
                       </TableCell>
 
-                      <TableCell className="px-3 py-3 align-top">
-                        <div className="space-y-3">
-                          <div className="text-sm font-medium text-gray-900 max-w-[250px] whitespace-normal break-words">
-                            {h.recurso_destino.title}
+                         <TableCell className="  px-1 py-2 align-top  ">
+                        <div className="  space-y-3">
+                          <div className="line-clamp-4 text-sm font-medium text-gray-900   whitespace-normal break-words">
+                             {h.recurso_destino.title}  
                           </div>
                           <div className="text-xs text-gray-600">
                             <span className="font-medium">Identificador</span>
                           </div>
-                          <div className="text-xs font-medium text-blue-600 max-w-[250px] whitespace-normal break-words">
+                          <div className="text-xs font-medium text-blue-600 max-w-[220px] whitespace-normal break-words">
                             {h.recurso_destino.raw_metadata?.identifier}
                           </div>
                           <div className="pt-1">
@@ -424,7 +423,7 @@ const { can } = useAuthZ();
                         </div>
                       </TableCell>
 
-                      <TableCell className="px-3 py-3 align-top">
+                      <TableCell className="px-1 py-1 align-top  ">
                         <div className="space-y-2">
                           <div className="flex flex-wrap gap-2">
                             <Badge
@@ -442,14 +441,15 @@ const { can } = useAuthZ();
                         </div>
                       </TableCell>
 
-                        {can({ anyOf: ["relaciones.delete"] }) && (<TableCell className="px-3 py-3 align-top">
+                      {can({ anyOf: ["relaciones.delete"] }) && (
+                        <TableCell className="px-1   align-top">
                         <div className="flex items-center justify-center">
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="icon" title="Eliminar relación">
-                               
+
                                 <Trash className="h-5 w-5 text-red-600" />
-                               
+
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -476,7 +476,7 @@ const { can } = useAuthZ();
                             </AlertDialogContent>
                           </AlertDialog>
                         </div>
-                      </TableCell> )}
+                      </TableCell>)}
                     </TableRow>
                   );
                 })}

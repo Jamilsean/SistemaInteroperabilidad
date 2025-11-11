@@ -17,7 +17,7 @@ updated_at: string;
 }
 export interface DashboardRepositorio {
 id: number;
-nombre: string; // "DSPACE" | "DATAVERSE" | "GEONETWORK" | string
+nombre: string; 
 base_url: string;
 is_harvesting: boolean;
 created_at: string;

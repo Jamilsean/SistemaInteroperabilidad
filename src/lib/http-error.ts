@@ -18,8 +18,7 @@ export function parseAxiosError(e: any): ServerError {
     (typeof data === "string" && data) ||
     (status === 0 ? "Error de conexión" : "Error al procesar la solicitud");
 
-  // tipifica 403 inactivo, si el backend no manda texto claro
-  if (status === 403 && !data?.message) {
+   if (status === 403 && !data?.message) {
     message = "Tu cuenta no está activa. Contacta al administrador.";
   }
 

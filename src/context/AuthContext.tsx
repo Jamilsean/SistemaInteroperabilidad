@@ -104,7 +104,7 @@ const provisionalFromEmail = (email: string): MeUser => {
 // ---------- refresh actual ----------
 async function refreshSession(): Promise<{ user: MeUser | null; roles: string[]; permissions: string[] } | null> {
   const resp = await refreshOnce();
-  if (!resp) return null; // ⬅️ null significa "no hacer nada"
+  if (!resp) return null;
   const payload = resp.data ?? resp;
   const u = normalizeUser(payload?.user);
   const flat = flattenAuth(payload);
@@ -119,7 +119,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
   const { pathname } = useLocation();
-  const navigate = useNavigate(); // ⬅️
+  const navigate = useNavigate();
 
   // persistencia
   React.useEffect(() => {
@@ -141,8 +141,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     });
 
     setUnauthorizedHandler(() => {
-      // ⬅️ limpiar y redirigir cuando el refresh REAL falla
-      setUser(null);
+       setUser(null);
       setRoles([]);
       setPermissions([]);
       localStorage.removeItem(LS_USER);
@@ -165,7 +164,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const run = async () => {
     try {
       const res = await refreshSession();
-      if (stopped || res === null) return; // ⬅️ no tocar estado si hay cooldown
+      if (stopped || res === null) return;
       if (res.user) setUser(res.user); else setUser(null);
       if (res.roles.length) setRoles(res.roles); else setRoles([]);
       if (res.permissions.length) setPermissions(res.permissions); else setPermissions([]);

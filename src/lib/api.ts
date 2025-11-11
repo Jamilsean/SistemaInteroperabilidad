@@ -36,7 +36,7 @@ export async function refreshOnce(): Promise<any> {
   const now = Date.now();
   if (_refreshPromise) return _refreshPromise;
   if (now - _lastRefreshAt < REFRESH_COOLDOWN_MS) return null;
-  _lastRefreshAt = now; // ⬅️ mueve aquí para aplicar cooldown aunque falle
+  _lastRefreshAt = now;
 
   _refreshPromise = api.post("/auth/refresh")
     .then((resp) => {
@@ -63,17 +63,14 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const cfg = (error.config || {}) as RetriableConfig;
 
-    // ✅ 1) Atiende SIEMPRE /auth/refresh primero
-    if (cfg.url?.endsWith("/auth/refresh")) {
-      // Cualquier fallo de refresh invalida sesión
-      if (!status || [401,403,404,419].includes(status)) {
+     if (cfg.url?.endsWith("/auth/refresh")) {
+       if (!status || [401,403,404,419].includes(status)) {
         onUnauthorized?.();
       }
       return Promise.reject(error);
     }
 
-    // ⬇️ Recién aquí tu return temprano
-    if (status !== 401 || cfg._retry || isAuthEndpoint(cfg.url)) {
+     if (status !== 401 || cfg._retry || isAuthEndpoint(cfg.url)) {
       return Promise.reject(error);
     }
     cfg._retry = true;
@@ -95,8 +92,7 @@ api.interceptors.response.use(
   }
 );
 
-// Logs útiles en dev (opcional)
-if (import.meta.env.DEV) {
+ if (import.meta.env.DEV) {
   console.debug("[api] baseURL:", api.defaults.baseURL, "withCredentials:", api.defaults.withCredentials);
   api.interceptors.request.use((cfg) => {
     console.debug("[API ->]", (cfg.method || "get").toUpperCase(), (cfg.baseURL || "") + (cfg.url || ""));

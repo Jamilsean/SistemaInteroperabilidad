@@ -63,27 +63,7 @@ function BarList({
   );
 }
 
-// function Sparkline({ values, height = 64 }: { values: number[]; height?: number }) {
-//   if (!values.length) return null;
-//   const max = Math.max(...values) || 1;
-//   const stepX = 100 / (values.length - 1 || 1);
-//   const points = values.map((v, i) => {
-//     const x = i * stepX;
-//     const y = 100 - (v / max) * 100; // invertimos Y
-//     return `${x},${y}`;
-//   });
-//   return (
-//     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full" style={{ height }}>
-//       <polyline
-//         points={points.join(" ")}
-//         fill="none"
-//         stroke="currentColor"
-//         strokeWidth={2}
-//         className="text-primary/70"
-//       />
-//     </svg>
-//   );
-// }
+
 
 function formatDateTime(iso?: string | null) {
   if (!iso) return "-";
@@ -115,8 +95,6 @@ export default function DashboardLayout() {
     return arr;
   }, [ultimasCosechas]);
 
-  // const sparkNuevos = sortedCosechas.map((c) => c.new_records);
-  // const sparkTotales = sortedCosechas.map((c) => c.total_records);
 
   async function fetchDashboard() {
     setLoading(true);
@@ -174,7 +152,7 @@ export default function DashboardLayout() {
             <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
             <p className="text-sm text-muted-foreground">Resumen de repositorios y cosechas</p>
           </div>
-          <div className="flex gap-1">
+          <div className="flex flex-col sm:flex-row gap-1">
             <Button variant="outline" onClick={fetchDashboard}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refrescar
@@ -316,7 +294,6 @@ export default function DashboardLayout() {
                       <div className="space-y-2">
                         <div className="aspect-[16/9] w-full overflow-hidden rounded-md border bg-muted flex items-center justify-center">
                           {r.ultimo_recurso.url_image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={r.ultimo_recurso.url_image}
                               alt={r.ultimo_recurso.title}

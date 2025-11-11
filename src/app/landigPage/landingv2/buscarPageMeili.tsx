@@ -52,8 +52,7 @@ export default function BuscarPageMeili() {
     // const inputRef = React.useRef<HTMLInputElement | null>(null);
   
 
-  // ⬇️ nuevos filtros YYYY-MM (date_issued_from / date_issued_to)
-  const [dateFrom, setDateFrom] = React.useState<string>(params.get("date_issued_from") || "");
+   const [dateFrom, setDateFrom] = React.useState<string>(params.get("date_issued_from") || "");
   const [dateTo, setDateTo] = React.useState<string>(params.get("date_issued_to") || "");
 
   const [rows, setRows] = React.useState<Recurso[]>([]);
@@ -93,13 +92,7 @@ export default function BuscarPageMeili() {
       setLoading(true);
       try {
         const repoArray = repoId ? [repoId] : [];
-
-        // ⬇️ Pasamos dates al servicio (debes tenerlos soportados)
-        // si aún no actualizaste la firma del servicio, puedes hacer:
-        // const res: RecursosResponse = await (getRecursosPublic as any)(
-        //   p, perPage, repoArray, search.trim(), searchIn, sortBy, sortDir, dateFrom || null, dateTo || null
-        // );
-
+ 
         const res: RecursosResponse = await getRecursosWithMeilisearch(
           p,
           perPage,
@@ -108,8 +101,7 @@ export default function BuscarPageMeili() {
           searchIn,
           sortBy,
           sortDir,
-          // ⬇️ nuevos argumentos (tu servicio debe soportarlos como opcionales)
-          dateFrom || null,
+           dateFrom || null,
           dateTo || null
         );
 

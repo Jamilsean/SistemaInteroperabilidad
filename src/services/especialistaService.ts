@@ -5,10 +5,10 @@ import type { CreateEspecialistaResponse, DeleteEspecialistaResponse, Especialis
 
 /** Filtros/orden para GET /v1/especialista */
 export type GetEspecialistasParams = {
-  page?: number | null;        // >= 1
-  per_page?: number | null;    // >= 1
-  search?: string | null;      // >= 2 chars (si se envía)
-  search_in?: "nombres" | "apellidos" | "email"; // default backend: nombres?
+  page?: number | null;       
+  per_page?: number | null;   
+  search?: string | null;      
+  search_in?: "nombres" | "apellidos" | "email"; 
   sort_by?: "nombres" | "apellidos" | "email" | "created_at" | "updated_at";
   sort_dir?: "asc" | "desc";
 };

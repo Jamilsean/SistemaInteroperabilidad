@@ -1,5 +1,4 @@
-// src/services/authService.ts
-import api from "@/lib/api";
+ import api from "@/lib/api";
 import type { MeUser } from "@/types/user";
 
 type MeResponse =
@@ -12,10 +11,8 @@ function normalizeRoles(r: any): string[] {
 }
 
 export async function login(email: string, password: string) {
-  // El backend debe setear cookies HttpOnly aquí
-  const { data } = await api.post("/auth/login", { email, password });
-  // No guardar tokens en front. Luego el caller puede llamar a getCurrentSession()
-  return data;
+   const { data } = await api.post("/auth/login", { email, password });
+   return data;
 }
 
 export async function logoutRemote() {
@@ -28,17 +25,15 @@ export async function getCurrentSession(): Promise<{
   roles: string[];
   permissions: string[];
 }> {
-  // Idealmente GET; si tu API es POST, déjalo en POST
-  const { data } = await api.get<MeResponse>("/auth/me").catch(async (e) => {
-    // fallback si el backend solo acepta POST
-    if (e?.response?.status === 405) {
+   const { data } = await api.get<MeResponse>("/auth/me").catch(async (e) => {
+     if (e?.response?.status === 405) {
       const { data } = await api.post<MeResponse>("/auth/me");
       return { data };
     }
     throw e;
   });
 
-  // Normaliza shapes { user: ... } o plano
+  // Normaliza  
   const user: MeUser | null = (data as any)?.user ?? (data as any) ?? null;
   const roles = normalizeRoles((data as any)?.roles);
   const permissions = normalizeRoles((data as any)?.permissions);
@@ -49,8 +44,7 @@ export async function getCurrentSession(): Promise<{
 }
 
 export const exchangeSSOCode = async (code: string) => {
-  // Tu backend pidió { code }, aunque en URL lo llames token.
-  // Aquí mapeamos token -> code.
+
   const { data } = await api.post("/auth/callback", { code });
-  return data; // idealmente { user, roles, permissions } y setea cookies
+  return data;
 };

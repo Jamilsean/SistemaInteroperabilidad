@@ -12,7 +12,7 @@ export async function fetchAutocomplete(
 ): Promise<AutocompleteItem[]> {
   const res = await api.get<AutocompleteResponse>("/autocomplete", {
     params,
-    signal, // para poder cancelar en vuelo
+    signal,
   });
   return res.data;
 }

@@ -287,7 +287,7 @@ export default function UserTable() {
 
         <CardContent className="space-y-4">
           {/* Filtros */}
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap  gap-3">
             <div className="relative">
               <Label className="mb-1 block">Buscar</Label>
               <div className="relative">

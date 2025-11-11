@@ -40,7 +40,7 @@ import { parseAxiosError, type ServerError } from "@/lib/http-error";
 import type { Especialista } from "@/types/especialistas";
 import { getEspecialistas } from "@/services/especialistaService";
 import { enviarCorreosRelacion } from "@/services/votoService";
-import { Checkbox } from "@/components/ui/checkbox"; // ⬅️ añadido
+import { Checkbox } from "@/components/ui/checkbox";
 import useDebounce from "@/hooks/useDebounce";
 import { useAuthZ } from "@/hooks/useAuthZ";
 import { Link } from "react-router-dom";
@@ -114,7 +114,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
       const data_repositorio = await listRepositorios();
       setRepositorios(data_repositorio);
 
-      // 👉 ahora sí pasamos search y search_in
+      // ahora sí pasamos search y search_in
       const data = await getRecursos(page, por_pagina, id_repo, q, qIn);
       setRecursos(data.data);
       setCurrentPage(data.current_page);
@@ -190,8 +190,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
       setConfirmRaw("");
       setOpenConfirm(true);
 
-      // ⬇️ si hay 1 o varios especialistas seleccionados, enviar
-      if (relacionId && especialistaIds.length > 0) {
+       if (relacionId && especialistaIds.length > 0) {
         try {
           const correoRes = await enviarCorreosRelacion(relacionId, {
             relacion_id: relacionId,
@@ -291,7 +290,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className=" my-4 text-muted-foreground flex items-center gap-2">
+      <div className=" my-4 text-muted-foreground flex flex-col sm:flex-row  gap-2">
         <span>
           Origen:&nbsp;
           {recursoOrigen ? <b>#{recursoOrigen.id}</b> : <i>no seleccionado</i>}
@@ -301,7 +300,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
             <X className="h-4 w-4" />
           </Button>
         )}
-        <span className="ml-2">
+        <span className=" ">
           Destino:&nbsp;
           {recursoDestino ? <b>#{recursoDestino.id}</b> : <i>no seleccionado</i>}
         </span>
@@ -543,7 +542,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
       </div>
 
       <form>
-        <div className="flex flex-wrap items-center gap-2 my-2 ">
+        <div className="flex flex-col md:flex-row md:flex-wrap items-start md::items-center gap-2 my-2 ">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -554,7 +553,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
             />
           </div>
           <Select value={searchIn} onValueChange={(v) => setSearchIn(v as any)}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-[200px] max-w-sm">
               <SelectValue placeholder="Buscar en…" />
             </SelectTrigger>
             <SelectContent>
@@ -585,7 +584,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
           </div>
 
           <Select value={String(per_page)} onValueChange={(v) => setPer_page(Number(v))}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Selecciona cantidad por página" />
             </SelectTrigger>
             <SelectContent>

@@ -1,5 +1,4 @@
-// src/app/roles/RolesManager.tsx
-"use client";
+ "use client";
 
 import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -112,7 +111,7 @@ export default function TableIRecursos() {
 
   const openEditRole = async (r: Role) => {
     try {
-      const full = await getRole(r.id); // asegúrate de traer permisos actualizados
+      const full = await getRole(r.id);  
       setEditing(full);
       setFormName(full.name);
       setFormDisplay(full.display_name || "");
@@ -183,7 +182,7 @@ export default function TableIRecursos() {
     setFormPerms((prev) => (on ? [...new Set([...prev, permName])] : prev.filter(p => p !== permName)));
   };
 
-  // UI: filtros reactivamente (cambia y dispara fetch por useEffect)
+  //  filtros reactivamente 
   const handleParam = <K extends keyof GetRolesParams>(key: K, value: GetRolesParams[K]) => {
     setParams((p) => ({ ...p, page: 1, [key]: value }));
   };

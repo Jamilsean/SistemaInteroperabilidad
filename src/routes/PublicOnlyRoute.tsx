@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 export const PublicOnlyRoute = () => {
-  const { user } = useAuth();            // 👈 no usamos loading aquí
+  const { user } = useAuth(); 
   const location = useLocation();
 
   if (user) {

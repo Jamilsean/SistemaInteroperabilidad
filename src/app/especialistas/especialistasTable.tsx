@@ -151,8 +151,8 @@ export default function EspecialistasTable() {
   return (
     <div className="space-y-6">
       {/* Filtros */}
-      <div className="flex items-center gap-3">
-        <div className="relative w-full max-w-sm">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full sm:max-w-xs">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-8"
@@ -164,7 +164,7 @@ export default function EspecialistasTable() {
         </div>
 
         <Select value={String(perPage)} onValueChange={(v) => setPerPage(Number(v))}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-full sm:w-[140px]">
             <SelectValue placeholder="Per page" />
           </SelectTrigger>
           <SelectContent>
@@ -178,7 +178,7 @@ export default function EspecialistasTable() {
         </Select>
 
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-full sm:w-[140px]">
             <SelectValue placeholder="Ordenar por" />
           </SelectTrigger>
           <SelectContent>
@@ -193,7 +193,7 @@ export default function EspecialistasTable() {
         </Select>
 
         <Select value={sortDir} onValueChange={(v) => setSortDir(v as any)}>
-          <SelectTrigger className="w-[130px]">
+          <SelectTrigger className="w-full sm:w-[140px]">
             <SelectValue placeholder="Dirección" />
           </SelectTrigger>
           <SelectContent>
@@ -204,14 +204,14 @@ export default function EspecialistasTable() {
           </SelectContent>
         </Select>
 
-        <Button onClick={() => fetchList(1)} disabled={loading}>
+        <Button className="w-45" onClick={() => fetchList(1)} disabled={loading}>
           Buscar
         </Button>
 
         <Dialog open={openForm} onOpenChange={(o) => { setOpenForm(o); if (!o) { setEditingId(null); setForm(initialForm); } }}>
           <DialogTrigger asChild>
             {can({ anyOf: ["especialistas.create"] }) && (
-              <Button variant="default" className="ml-auto">
+              <Button variant="success" className="w-45 md:ml-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Nuevo especialista
               </Button>
@@ -273,7 +273,7 @@ export default function EspecialistasTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[70px]">ID</TableHead>
+              <TableHead className=" ">ID</TableHead>
               <TableHead>Nombres</TableHead>
               <TableHead>Apellidos</TableHead>
               <TableHead>Correo</TableHead>
@@ -308,7 +308,7 @@ export default function EspecialistasTable() {
                           title="Eliminar"
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button> )}
+                        </Button>)}
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

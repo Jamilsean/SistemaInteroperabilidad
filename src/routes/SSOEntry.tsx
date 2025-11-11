@@ -6,8 +6,7 @@ export default function SSOEntry() {
   const [sp] = useSearchParams();
   const token = sp.get("token");
   const { user, loading } = useAuth();
-  // 1) Si viene desde la plataforma externa ⇒ redirige a tu callback público
-  if (token) {
+   if (token) {
     return (
       <Navigate
         to={`/auth/callback?token=${encodeURIComponent(token)}`}
@@ -16,8 +15,7 @@ export default function SSOEntry() {
     );
   }
 
-  // 2) Sin token en la URL: decide a dónde ir
-  if (loading) {
+   if (loading) {
     return <div style={{ padding: 16 }}>Verificando sesión:…</div>;
   }
   return user ? (
