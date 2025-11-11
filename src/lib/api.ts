@@ -35,17 +35,16 @@ const REFRESH_COOLDOWN_MS = 10_000; // evita ráfagas (10s)
 export async function refreshOnce(): Promise<any> {
   const now = Date.now();
   if (_refreshPromise) return _refreshPromise;
-  if (now - _lastRefreshAt < REFRESH_COOLDOWN_MS) {
-    // Demasiado pronto: no dispares otro hit al backend
-    return null;
-  }
+  if (now - _lastRefreshAt < REFRESH_COOLDOWN_MS) return null;
+  _lastRefreshAt = now; // ⬅️ mueve aquí para aplicar cooldown aunque falle
+
   _refreshPromise = api.post("/auth/refresh")
     .then((resp) => {
-      _lastRefreshAt = Date.now();
       onRefreshed?.(resp.data);
       return resp;
     })
     .finally(() => { _refreshPromise = null; });
+
   return _refreshPromise;
 }
 
@@ -64,17 +63,21 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const cfg = (error.config || {}) as RetriableConfig;
 
-    // No refresques en  non-401, ya reintentado, o endpoints /auth/*
-    if (status !== 401 || cfg._retry || isAuthEndpoint(cfg.url)) {
+    // ✅ 1) Atiende SIEMPRE /auth/refresh primero
+    if (cfg.url?.endsWith("/auth/refresh")) {
+      // Cualquier fallo de refresh invalida sesión
+      if (!status || [401,403,404,419].includes(status)) {
+        onUnauthorized?.();
+      }
       return Promise.reject(error);
     }
-     if ((status === 401 || status === 419) && cfg.url?.endsWith("/auth/refresh")) {
-      onUnauthorized?.();
+
+    // ⬇️ Recién aquí tu return temprano
+    if (status !== 401 || cfg._retry || isAuthEndpoint(cfg.url)) {
       return Promise.reject(error);
     }
     cfg._retry = true;
 
-    // Si ya hay un refresh en curso, encola esta petición
     if (_refreshPromise) {
       return new Promise((resolve, reject) => queue.push({ resolve, reject, config: cfg }));
     }
@@ -86,7 +89,7 @@ api.interceptors.response.use(
     } catch (err: any) {
       flush(err);
       const st = err?.response?.status;
-      if (st === 401 || st === 419) onUnauthorized?.();
+      if (!st || st === 401 || st === 419) onUnauthorized?.();
       return Promise.reject(err);
     }
   }

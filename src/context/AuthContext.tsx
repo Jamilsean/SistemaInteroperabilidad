@@ -102,11 +102,9 @@ const provisionalFromEmail = (email: string): MeUser => {
 };
 
 // ---------- refresh actual ----------
-async function refreshSession(): Promise<{ user: MeUser | null; roles: string[]; permissions: string[] }> {
+async function refreshSession(): Promise<{ user: MeUser | null; roles: string[]; permissions: string[] } | null> {
   const resp = await refreshOnce();
-  if (!resp) {
-    return { user: null, roles: [], permissions: [] };
-  }
+  if (!resp) return null; // ⬅️ null significa "no hacer nada"
   const payload = resp.data ?? resp;
   const u = normalizeUser(payload?.user);
   const flat = flattenAuth(payload);
@@ -161,39 +159,34 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
   // bootstrap: intenta refrescar al montar, en focus, visibilitychange y cada 5 min
   React.useEffect(() => {
-    let stopped = false;
-    if (isPublicPath(pathname) && !user) return;
+  let stopped = false;
+  if (isPublicPath(pathname) && !user) return;
 
-    const run = async () => {
-      try {
-        const res = await refreshSession();
-        if (stopped) return;
-        if (res.user) setUser(res.user);
-        else setUser(null); 
-        if (res.roles.length) setRoles(res.roles);
-        else setRoles([]);
-        if (res.permissions.length) setPermissions(res.permissions);
-        else setPermissions([]);
-      } catch {
-        // deja que el interceptor maneje un 401 duro
-      }
-    };
+  const run = async () => {
+    try {
+      const res = await refreshSession();
+      if (stopped || res === null) return; // ⬅️ no tocar estado si hay cooldown
+      if (res.user) setUser(res.user); else setUser(null);
+      if (res.roles.length) setRoles(res.roles); else setRoles([]);
+      if (res.permissions.length) setPermissions(res.permissions); else setPermissions([]);
+    } catch {
+      // el interceptor se encarga
+    }
+  };
 
-    run(); // al montar / cambiar ruta
-
-    const onFocus = () => run();
-    const onVisible = () => { if (document.visibilityState === "visible") run(); };
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVisible);
-    const iv = window.setInterval(run, 5 * 60 * 1000);
-
-    return () => {
-      stopped = true;
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVisible);
-      window.clearInterval(iv);
-    };
-  }, [pathname,user]);
+  run();
+  const onFocus = () => run();
+  const onVisible = () => { if (document.visibilityState === "visible") run(); };
+  window.addEventListener("focus", onFocus);
+  document.addEventListener("visibilitychange", onVisible);
+  const iv = window.setInterval(run, 5 * 60 * 1000);
+  return () => {
+    stopped = true;
+    window.removeEventListener("focus", onFocus);
+    document.removeEventListener("visibilitychange", onVisible);
+    window.clearInterval(iv);
+  };
+}, [pathname, user]);
 
   const login = async (email: string, password: string) => {
     setLoading(true);

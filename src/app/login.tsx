@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, Loader2 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { nombre_institucio, nombre_sistema, REDIRECT_SSO } from "@/config/env";
+import { nombre_institucion, nombre_sistema, REDIRECT_SSO } from "@/config/env";
 import { toast } from "sonner";
 import { parseAxiosError } from "@/lib/http-error";
 
@@ -89,7 +89,7 @@ export default function LoginPage() {
               <div className="p-1 rounded-xl flex items-center">
                 <img className="w-12 h-12" src="/images/Logo.png" alt="" />
                 <h1 className="text-sm text-center uppercase text-gray-900">
-                  {nombre_institucio}
+                  {nombre_institucion}
                 </h1>
               </div>
             </div>
