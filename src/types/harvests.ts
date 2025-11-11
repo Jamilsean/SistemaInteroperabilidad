@@ -1,4 +1,3 @@
-// src/types/harvests.ts
 export interface Repositorio {
   id: number;
   nombre: string;
@@ -9,7 +8,6 @@ export interface Repositorio {
   recursos_count?: number;
 }
 
-// Si aún no conoces el shape de los detalles, usa un índice flexible:
 export interface HarvestDetail {
   [key: string]: unknown;
 }
@@ -26,7 +24,7 @@ export interface Harvest {
   created_at: string | null;
   updated_at: string | null;
   repositorio: Repositorio;
-  harvest_details: HarvestDetail[]; // 👈 que coincida en todos lados
+  harvest_details: HarvestDetail[];
 }
 export interface LaravelLink {
   url: string | null;
@@ -48,8 +46,8 @@ export interface HarvestsResponse{
   links: LaravelLink[];
   next_page_url: string | null;
   path: string;
-  per_page: number | string; // a veces llega como string
+  per_page: number | string;
   prev_page_url: string | null;
   to: number | null;
-  total: number | string;    // a veces llega como string
+  total: number | string;
 }

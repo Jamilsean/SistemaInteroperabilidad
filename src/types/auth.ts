@@ -1,3 +1,4 @@
+// Estructura de datos para gestión de Sesiones como usuarios, roles, permisos y respuestas
 export type RPivot = { role_id?: number; permission_id?: number; model_type?: string; model_id?: number };
 
 export type RPermission = {
@@ -49,7 +50,6 @@ export type SSOCallbackOk = {
   data?: SSOCallbackPayload;
 } & SSOCallbackPayload;
 export type SSOCallbackPayload = {
-  // el backend podría devolver cualquiera de estos
   token?: string;
   jwt?: string;
   access_token?: string;

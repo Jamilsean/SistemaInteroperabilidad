@@ -1,4 +1,3 @@
-// src/types/recursos.ts
 import type { Repositorios } from "./repositorios";
 import type { TipoRecurso } from "./tipoRecurso";
 
@@ -28,7 +27,7 @@ export type DcUri =
     }
   | string;  
 
-// raw_metadata: combina claves GeoNetwork (dc:*, ows:*) y Dataverse (sin prefijo)
+// raw_metadata:
 export interface RawMetadata {
   // Namespaces GeoNetwork
   "@xmlns:gmx"?: string;
@@ -62,8 +61,6 @@ export interface RawMetadata {
   contributor?: StrOrStrArr;
   type?: StrOrStrArr;
   language?: StrOrStrArr;
-
-  // Permite campos adicionales no modelados
   [k: string]: unknown;
 }
 

@@ -179,7 +179,7 @@ export default function DashboardLayout() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refrescar
             </Button>
-            <Link to="/landingpage" className="bg-azul px-3 py-1 rounded-sm text-gray-200 hover:text-foreground transition-colors">
+            <Link to="/" className="bg-azul px-3 py-1 rounded-sm text-gray-200 hover:text-foreground transition-colors">
               <span className="inline-flex items-center gap-2">
                 <img src="/images/Logo.png" alt="INAIGEM" className="h-4 w-4" />
                 Ver más

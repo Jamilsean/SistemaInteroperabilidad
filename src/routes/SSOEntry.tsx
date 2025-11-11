@@ -18,7 +18,7 @@ export default function SSOEntry() {
 
   // 2) Sin token en la URL: decide a dónde ir
   if (loading) {
-    return <div style={{ padding: 16 }}>Verificando sesión…</div>;
+    return <div style={{ padding: 16 }}>Verificando sesión:…</div>;
   }
   return user ? (
     <Navigate to="/dashboard" replace />

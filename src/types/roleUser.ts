@@ -1,26 +1,25 @@
-// src/types/roleUser.ts
 export type Permission = {
   id: number;
-  name: string;          // p.ej. "users.update"
-  display_name: string;  // puede venir igual al name
-  guard_name: string;    // "api"
+  name: string;         
+  display_name: string;  
+  guard_name: string;    
   created_at: string;
   updated_at: string;
 };
 
 export type Role = {
   id: number;
-  name: string;           // p.ej. "admin"
-  display_name?: string;  // "Administrador"
-  guard_name: string;     // "api"
+  name: string;           
+  display_name?: string;
+  guard_name: string;     
   description?: string | null;
   created_at: string;
   updated_at: string;
 };
 
 export type UserRolesPermissions = {
-  roles: string[];        // ["admin","editor"]
-  permissions: string[];  // ["users.read","users.update", ...]
+  roles: string[];      
+  permissions: string[]; 
 };
 
 export type GetUserRolesPermsResponse = {
@@ -33,7 +32,7 @@ export type ListPermissionsResponse = {
   data: Permission[];
 };
 
-// /v1/roles (list) simplificado para opciones en UI
+// /v1/roles (list) simplificado
 export type ListRolesResponse = {
   status: "success";
   message: string;

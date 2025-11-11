@@ -1,11 +1,6 @@
 import type { Permission } from "./permission";
 import type { Role } from "./roles";
 
-// src/types/users.ts
-
-
-
-
 export interface Usuario {
   id: number;
   name: string;
@@ -46,7 +41,7 @@ export type GetUsuariosParams = Partial<{
   page: number;
   per_page: number;
   search: string;
-  search_in: string; // "name,is_active,email"
+  search_in: string; 
   sort_by: "id" | "is_active" | "email_verified_at" | "email" | "created_at" | "updated_at";
   sort_dir: "asc" | "desc";
 }>;
@@ -81,10 +76,9 @@ export type GetUsersParams = {
   page?: number;
   per_page?: number;
   search?: string;
-  // agrega otros filtros si existen
 };
 export interface UsersResponse {
-  cantidad: number; // total devuelto en esta respuesta
+  cantidad: number; 
   users: User[];
 }
 export interface MeUser {

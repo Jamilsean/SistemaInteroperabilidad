@@ -28,9 +28,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/" element={<LandingPageV3Meili />} />
       <Route path="/landingPageMeili" element={<LandingPageV3Meili />} />
-
       <Route path="/" element={<SSOEntry />} />
-
       <Route element={<Header />}>
         <Route path="/recursos/:id" element={<RecursoDetailPage />} />
       </Route>

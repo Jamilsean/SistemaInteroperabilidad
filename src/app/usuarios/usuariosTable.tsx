@@ -35,8 +35,10 @@ import {
   revokeUserPermission,
 } from "@/services/roleUserService";
 import type { Permission, Role } from "@/types/roleUser";
+import { useAuthZ } from "@/hooks/useAuthZ";
 
 export default function UserTable() {
+  const { can } = useAuthZ();
   // ---------- Filtros existentes ----------
   const [search, setSearch] = React.useState("");
   const [perPage, setPerPage] = React.useState(10);
@@ -71,7 +73,7 @@ export default function UserTable() {
   const [userPerms, setUserPerms] = React.useState<string[]>([]);
   const [loadingManage, setLoadingManage] = React.useState(false);
   const [addingPerm, setAddingPerm] = React.useState<string | undefined>(undefined);
-  
+
   // ---------- Fetch tabla ----------
   const fetchData = React.useCallback(async (page = 1) => {
     setLoading(true);
@@ -192,7 +194,7 @@ export default function UserTable() {
       const err = parseAxiosError(e);
       toast.error(err.message || "No se pudo actualizar el rol");
     }
-    
+
   };
 
   const addPermission = async () => {
@@ -242,10 +244,11 @@ export default function UserTable() {
           {/* Crear usuario */}
           <Dialog open={openCreate} onOpenChange={setOpenCreate}>
             <DialogTrigger asChild>
-              <Button variant="success" className="ml-auto gap-2">
-                <UserPlus className="h-4 w-4" />
-                Nuevo usuario
-              </Button>
+              {can({ anyOf: ["users.create"] }) && (
+                <Button variant="success" className="ml-auto gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Nuevo usuario
+                </Button>)}
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -291,7 +294,7 @@ export default function UserTable() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   className="pl-8 w-64"
-                  placeholder="Nombre / email / activo"
+                  placeholder="Buscar..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -306,10 +309,9 @@ export default function UserTable() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="name,is_active,email">name, is_active, email</SelectItem>
+                    <SelectItem value="name,is_active,email">Todos</SelectItem>
                     <SelectItem value="name">name</SelectItem>
                     <SelectItem value="email">email</SelectItem>
-                    <SelectItem value="is_active">is_active</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -323,12 +325,11 @@ export default function UserTable() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="id">id</SelectItem>
-                    <SelectItem value="email">email</SelectItem>
-                    <SelectItem value="is_active">is_active</SelectItem>
-                    <SelectItem value="created_at">created_at</SelectItem>
-                    <SelectItem value="updated_at">updated_at</SelectItem>
-                    <SelectItem value="email_verified_at">email_verified_at</SelectItem>
+                    <SelectItem value="id">ID</SelectItem>
+                    <SelectItem value="email">Correo</SelectItem>
+                    <SelectItem value="is_active">Activos</SelectItem>
+                    <SelectItem value="created_at">Fecha creación</SelectItem>
+                    <SelectItem value="updated_at">Fecha edición</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -408,9 +409,9 @@ export default function UserTable() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
-                      <Button size="sm" variant="secondary" onClick={() => handleToggle(u)}>
+                      {can({ anyOf: ["users.update"] }) && (<Button size="sm" variant="secondary" onClick={() => handleToggle(u)}>
                         {u.is_active ? "Desactivar" : "Activar"}
-                      </Button>
+                      </Button>)}
                       <Button size="sm" variant="outline" onClick={() => openManageFor(u)}>
                         <Shield className="h-4 w-4 mr-1" /> Roles/Permisos
                       </Button>
@@ -456,55 +457,59 @@ export default function UserTable() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Columna Roles */}
-              <div className="space-y-3">
-                <h4 className="font-semibold">Roles</h4>
-                <ScrollArea className="h-64 rounded-md border p-3">
-                  <div className="space-y-2">
-                    {allRoles.map((r) => {
-                      const isAdmin = r.name === "admin" || r.id === 1;
-                      const checked = userRoles.includes(r.name);
-                      return (
-                        <label key={r.id} className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4"
-                            checked={checked}
-                            disabled={isAdmin} // no toques admin
-                            onChange={(e) => toggleRole(r.name, e.target.checked)}
-                          />
-                          <span className="text-sm">
-                            <span className="font-medium">{r.display_name || r.name}</span>
-                            {isAdmin && <Badge className="ml-2">protegido</Badge>}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-              </div>
+              {can({ anyOf: ["users.assign-role"] }) && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold">Roles</h4>
 
+                  <ScrollArea className="h-64 rounded-md border p-3">
+                    <div className="space-y-2">
+                      {allRoles.map((r) => {
+                        const isAdmin = r.name === "admin" || r.id === 1;
+                        const checked = userRoles.includes(r.name);
+                        return (
+                          <label key={r.id} className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4"
+                              checked={checked}
+                              disabled={isAdmin} // no toques admin
+                              onChange={(e) => toggleRole(r.name, e.target.checked)}
+                            />
+                            <span className="text-sm">
+                              <span className="font-medium">{r.display_name || r.name}</span>
+                              {isAdmin && <Badge className="ml-2">protegido</Badge>}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </div>
+              )}
               {/* Columna Permisos */}
               <div className="space-y-3">
                 <h4 className="font-semibold">Permisos directos</h4>
-                <div className="flex gap-2">
-                  <Select value={addingPerm} onValueChange={setAddingPerm}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecciona un permiso…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {allPermissions
-                          .filter((p) => !userPerms.includes(p.name))
-                          .map((p) => (
-                            <SelectItem key={p.id} value={p.name}>
-                              {p.display_name || p.name}
-                            </SelectItem>
-                          ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={addPermission} disabled={!addingPerm}>Añadir</Button>
-                </div>
+                {can({ anyOf: ["users.give-permission"] }) && (
+                  <div className="flex gap-2">
+                    <Select value={addingPerm} onValueChange={setAddingPerm}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona un permiso…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {allPermissions
+                            .filter((p) => !userPerms.includes(p.name))
+                            .map((p) => (
+                              <SelectItem key={p.id} value={p.name}>
+                                {p.display_name || p.name}
+                              </SelectItem>
+                            ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <Button onClick={addPermission} disabled={!addingPerm}>Añadir</Button>
+                  </div>
+                )}
 
                 <ScrollArea className="h-56 rounded-md border p-3">
                   {userPerms.length ? (
@@ -512,13 +517,13 @@ export default function UserTable() {
                       {userPerms.map((perm) => (
                         <Badge key={perm} variant="secondary" className="gap-1">
                           {perm}
-                          <button
+                          {can({ anyOf: ["users.revoke-permission"] }) && (<button
                             className="ml-1 inline-flex"
                             onClick={() => removePermission(perm)}
                             title="Revocar"
                           >
                             <X className="h-3 w-3" />
-                          </button>
+                          </button>)}
                         </Badge>
                       ))}
                     </div>

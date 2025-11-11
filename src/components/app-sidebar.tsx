@@ -68,8 +68,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     () => [
       { title: "Dashboard", to: "/dashboard", icon: Home, guard: { anyOf: ["dashboard.read"] } },
       { title: "Cosechas", to: "/cosechas", icon: BarChart3, guard: { anyOf: ["harvests.read", "harvests.create"] } },
-      { title: "Recursos", to: "/recursos", icon: FileText, guard: { anyOf: [""] } },
-      { title: "Integraciones", to: "/integraciones", icon: Blend, guard: { anyOf: ["relaciones.read"] } },
+      { title: "Recursos", to: "/recursos", icon: FileText, guard: { anyOf: ["dashboard.read"] } },
+      { title: "Integraciones", to: "/integraciones", icon: Blend, guard: { anyOf: ["dashboard.read"] } },
     ],
     []
   );

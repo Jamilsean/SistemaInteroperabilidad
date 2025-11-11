@@ -10,9 +10,8 @@ export const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   timeout: 20000,
-  // Si tu backend usa CSRF cookie->header (Laravel Sanctum, etc.), descomenta:
-  // xsrfCookieName: "XSRF-TOKEN",
-  // xsrfHeaderName: "X-XSRF-TOKEN",
+  xsrfCookieName: "XSRF-TOKEN",
+  xsrfHeaderName: "X-XSRF-TOKEN",
 });
 
 /** Callbacks hacia AuthContext */

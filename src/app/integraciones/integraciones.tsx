@@ -11,8 +11,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useRef } from "react"; 
- import IntegracionDialog from "./integracionDialog";
-import type { TableIntegracionRef } from "./tableIntegracion";
+ import type { TableIntegracionRef } from "./tableIntegracion";
 import TableIntegracion from "./tableIntegracion";
 
 
@@ -57,7 +56,7 @@ export const Integraciones = () => {
               Exportar
             </Button> */}
         
-              <IntegracionDialog onDone={() => tableRef.current?.reload()} />
+              {/* <IntegracionDialog onDone={() => tableRef.current?.reload()} /> */}
           </div>
         </div>
 

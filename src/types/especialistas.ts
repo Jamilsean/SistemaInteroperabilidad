@@ -5,7 +5,7 @@ export interface Especialista {
   email: string;
   created_at: string;
   updated_at: string;
-  aprobaciones: any[]; // Reemplaza cuando conozcas el shape real
+  aprobaciones: any[]; 
 }
 
 export interface LaravelLink {
@@ -40,15 +40,14 @@ export interface EspecialistaUpsertPayload {
 
 /** Respuestas de acciones */
 export interface CreateEspecialistaResponse {
-  message: string;                       // "Especialista creado correctamente."
-  // En tu ejemplo viene como "string"; dejamos union por resiliencia
+  message: string;                     
   especialista: Especialista | string;
 }
 
 export interface UpdateEspecialistaResponse {
-  message: string;                       // "Especialista actualizado correctamente."
+  message: string;                      
 }
 
 export interface DeleteEspecialistaResponse {
-  message: string;                       // "Registro eliminado correctamente."
+  message: string;                       
 }

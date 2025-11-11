@@ -13,11 +13,13 @@ import {
 import TableCosechas, { type TableCosechasRef } from "./tableCosecha";
 import { useRef } from "react";
 import HarvestDialog from "./harvestDialog"
+import { useAuthZ } from "@/hooks/useAuthZ";
 
 
  
 
 export const Cosechas = () => {
+  const { can } = useAuthZ();
  const tableRef = useRef<TableCosechasRef>(null);
   return (
     <div className="flex flex-col">
@@ -41,7 +43,7 @@ export const Cosechas = () => {
         {/* Header con título y acciones */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Consultas y Registros</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Cosechas de repositorios</h1>
             <p className="text-muted-foreground">
               Gestión y monitoreo de cosechas
             </p>
@@ -55,8 +57,10 @@ export const Cosechas = () => {
               <Download className="w-4 h-4 mr-2" />
               Exportar
             </Button> */}
-        
+        {can({ anyOf: ["harvests.create"] }) && (
               <HarvestDialog onDone={() => tableRef.current?.reload()} />
+
+ )}
           </div>
         </div>
 

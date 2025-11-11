@@ -41,7 +41,9 @@ import type { Especialista } from "@/types/especialistas";
 import { getEspecialistas } from "@/services/especialistaService";
 import { enviarCorreosRelacion } from "@/services/votoService";
 import { Checkbox } from "@/components/ui/checkbox"; // ⬅️ añadido
-
+import useDebounce from "@/hooks/useDebounce";
+import { useAuthZ } from "@/hooks/useAuthZ";
+import { Link } from "react-router-dom";
 export type TableIntegracionRef = { reload: () => void };
 
 function formatDateTime(iso?: string | null) {
@@ -52,11 +54,15 @@ function formatDateTime(iso?: string | null) {
 }
 
 const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
-  const [repositorios, setRepositorios] = useState<Repositorios[]>([]);
+   const { can } = useAuthZ();
+ 
+   const [repositorios, setRepositorios] = useState<Repositorios[]>([]);
   const [idRepositorio, setIdRepositorio] = useState<number[]>([1, 2, 3]);
   const [selectedRepoValue, setSelectedRepoValue] = useState<string>("");
   const [per_page, setPer_page] = useState<number>(5);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
+  const [searchIn, setSearchIn] = useState<"title" | "autores" | "abstract" | "key_words">("title");
 
   // PARA relación
   const [recursoOrigen, setRecursoOrigen] = useState<Recurso | null>(null);
@@ -70,7 +76,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
   const [, setConfirmRaw] = useState<string>("");
 
   const [especialistas, setEspecialistas] = useState<Especialista[]>([]);
-  // ⬇️ ahora soporte múltiple
+  //  ahora soporte múltiple
   const [especialistaIds, setEspecialistaIds] = useState<number[]>([]);
   const [searchEspecialista, setSearchEspecialista] = useState<string>("");
 
@@ -92,16 +98,24 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
     }
   };
   const handleFilter = async () => {
-    fetchRelaciones();
+    await fetchRelaciones(1, per_page, idRepositorio, debouncedSearch, searchIn);
   };
   useImperativeHandle(ref, () => ({ reload: fetchRelaciones }), []);
 
-  const fetchRelaciones = async (page = 1, por_pagina = per_page, id_repo = idRepositorio) => {
+  const fetchRelaciones = async (
+    page = 1,
+    por_pagina = per_page,
+    id_repo = idRepositorio,
+    q = debouncedSearch,
+    qIn = searchIn
+  ) => {
     setLoading(true);
     try {
       const data_repositorio = await listRepositorios();
       setRepositorios(data_repositorio);
-      const data = await getRecursos(page, por_pagina, id_repo, search);
+
+      // 👉 ahora sí pasamos search y search_in
+      const data = await getRecursos(page, por_pagina, id_repo, q, qIn);
       setRecursos(data.data);
       setCurrentPage(data.current_page);
       setLastPage(data.last_page);
@@ -135,7 +149,13 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
     fetchRelaciones(currentPage);
     fetchEspecialistas(100);
   }, [currentPage]);
-
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchRelaciones(1, per_page, idRepositorio, debouncedSearch, searchIn);
+    }
+  }, [debouncedSearch, idRepositorio, per_page, searchIn]);
   const seleccionarOrigen = (r: Recurso) => {
     setRecursoOrigen(r);
     setRecursoDestino(null);
@@ -291,253 +311,265 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
           </Button>
         )}
 
-       {hasBoth && (
-  <Dialog>
-    <form>
-      <DialogTrigger asChild>
-        <Button variant="default">
-          <Link2 className="h-4 w-4" />
-          &nbsp;Realizar relación
-        </Button>
-      </DialogTrigger>
+        {hasBoth && (
+          <Dialog>
+            <form>
+              <DialogTrigger asChild>
+                <Button variant="default">
+                  <Link2 className="h-4 w-4" />
+                  &nbsp;Realizar relación
+                </Button>
+              </DialogTrigger>
 
-      {/* 👇 Modal responsivo y con scroll interno */}
-      <DialogContent
-        className="
+              {/* 👇 Modal responsivo y con scroll interno */}
+              <DialogContent
+                className="
           w-[95vw] sm:w-full sm:max-w-[640px]
           max-h-[85vh] overflow-y-auto
-          p-4 sm:p-6
+          p-2 sm:p-6
         "
-      >
-        <DialogHeader className=" top-0 bg-background backdrop-blur z-10">
-          <DialogTitle>Realizar relación</DialogTitle>
-          <DialogDescription>
-            A continuación realizará la relación entre los recursos seleccionados
-          </DialogDescription>
-        </DialogHeader>
+              >
+                <DialogHeader className=" top-0 bg-background backdrop-blur z-10">
+                  <DialogTitle>Realizar relación</DialogTitle>
+                  <DialogDescription>
+                    A continuación realizará la relación entre los recursos seleccionados
+                  </DialogDescription>
+                </DialogHeader>
 
-        {/* === Mini tarjetas ORIGEN / DESTINO (grid responsivo) === */}
-        {(recursoOrigen || recursoDestino) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Origen */}
-            {recursoOrigen && (
-              <div className="rounded-lg border p-3 bg-muted/10">
-                <div className="text-xs font-medium text-blue-700 mb-2">Origen</div>
-                <div className="flex items-start gap-3">
-                  <a
-                    href={`/recursos/${recursoOrigen.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0"
-                    title={`Ir a recurso #${recursoOrigen.id}`}
-                  >
-                    {recursoOrigen.url_image ? (
-                      <img
-                        src={recursoOrigen.url_image}
-                        alt={recursoOrigen.title}
-                        className="
+                {/* === Mini tarjetas ORIGEN / DESTINO (grid responsivo) === */}
+                {(recursoOrigen || recursoDestino) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* Origen */}
+                    {recursoOrigen && (
+                      <div className="rounded-lg border p-3 bg-muted/10">
+                        <div className="text-xs font-medium text-blue-700 mb-2">Origen</div>
+                        <div className="flex items-start gap-3">
+                          <a
+                            href={`/recursos/${recursoOrigen.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="shrink-0"
+                            title={`Ir a recurso #${recursoOrigen.id}`}
+                          >
+                            {recursoOrigen.url_image ? (
+                              <img
+                                src={recursoOrigen.url_image}
+                                alt={recursoOrigen.title}
+                                className="
                           w-20 h-20 md:w-24 md:h-24
                           object-cover rounded-md ring-1 ring-black/5
                         "
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 md:w-24 md:h-24 grid place-items-center rounded-md bg-muted text-muted-foreground text-[10px]">
-                        Sin portada
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-20 h-20 md:w-24 md:h-24 grid place-items-center rounded-md bg-muted text-muted-foreground text-[10px]">
+                                Sin portada
+                              </div>
+                            )}
+                          </a>
+                          <div className="min-w-0">
+                            <a
+                              href={`/recursos/${recursoOrigen.id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm font-semibold hover:underline line-clamp-2"
+                              title={recursoOrigen.title}
+                            >
+                              {recursoOrigen.title}
+                            </a>
+                            <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                              {recursoOrigen.autores || "—"}
+                            </div>
+                            <div className="mt-1 text-[11px] text-muted-foreground">
+                              ID: {recursoOrigen.id}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
-                  </a>
-                  <div className="min-w-0">
-                    <a
-                      href={`/recursos/${recursoOrigen.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm font-semibold hover:underline line-clamp-2"
-                      title={recursoOrigen.title}
-                    >
-                      {recursoOrigen.title}
-                    </a>
-                    <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                      {recursoOrigen.autores || "—"}
-                    </div>
-                    <div className="mt-1 text-[11px] text-muted-foreground">
-                      ID: {recursoOrigen.id}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Destino */}
-            {recursoDestino && (
-              <div className="rounded-lg border p-3 bg-muted/10">
-                <div className="text-xs font-medium text-green-700 mb-2">Destino</div>
-                <div className="flex items-start gap-3">
-                  <a
-                    href={`/recursos/${recursoDestino.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="shrink-0"
-                    title={`Ir a recurso #${recursoDestino.id}`}
-                  >
-                    {recursoDestino.url_image ? (
-                      <img
-                        src={recursoDestino.url_image}
-                        alt={recursoDestino.title}
-                        className="
+                    {/* Destino */}
+                    {recursoDestino && (
+                      <div className="rounded-lg border p-3 bg-muted/10">
+                        <div className="text-xs font-medium text-green-700 mb-2">Destino</div>
+                        <div className="flex items-start gap-3">
+                          <a
+                            href={`/recursos/${recursoDestino.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="shrink-0"
+                            title={`Ir a recurso #${recursoDestino.id}`}
+                          >
+                            {recursoDestino.url_image ? (
+                              <img
+                                src={recursoDestino.url_image}
+                                alt={recursoDestino.title}
+                                className="
                           w-20 h-20 md:w-24 md:h-24
                           object-cover rounded-md ring-1 ring-black/5
                         "
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 md:w-24 md:h-24 grid place-items-center rounded-md bg-muted text-muted-foreground text-[10px]">
-                        Sin portada
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-20 h-20 md:w-24 md:h-24 grid place-items-center rounded-md bg-muted text-muted-foreground text-[10px]">
+                                Sin portada
+                              </div>
+                            )}
+                          </a>
+                          <div className="min-w-0">
+                            <a
+                              href={`/recursos/${recursoDestino.id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-sm font-semibold hover:underline line-clamp-2"
+                              title={recursoDestino.title}
+                            >
+                              {recursoDestino.title}
+                            </a>
+                            <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                              {recursoDestino.autores || "—"}
+                            </div>
+                            <div className="mt-1 text-[11px] text-muted-foreground">
+                              ID: {recursoDestino.id}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     )}
-                  </a>
-                  <div className="min-w-0">
-                    <a
-                      href={`/recursos/${recursoDestino.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm font-semibold hover:underline line-clamp-2"
-                      title={recursoDestino.title}
-                    >
-                      {recursoDestino.title}
-                    </a>
-                    <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                      {recursoDestino.autores || "—"}
+                  </div>
+                )}
+
+                {/* === Campos (sin cambios de lógica) === */}
+                <div className="grid gap-2 mt-2">
+                  <div className="grid gap-3">
+                    <Label htmlFor="tipo_relacion">Tipo relación</Label>
+                    <Input
+                      id="tipo_relacion"
+                      name="tipo_relacion"
+                      placeholder="Relación implícita"
+                      value={tipo_relacion}
+                      onChange={(e) => setTipo_relacion(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="grid gap-3">
+                    <Label htmlFor="comentario">Comentario</Label>
+                    <Textarea
+                      id="comentario"
+                      name="comentario"
+                      placeholder="Registre un comentario de la relación"
+                      value={comentario}
+                      onChange={(e) => setComentario(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Selección de especialistas (tal cual, dentro de contenedor con scroll si crece) */}
+                  <div className="grid gap-2">
+                    <Label>Especialistas (opcional)</Label>
+                    <Input
+                      placeholder="Buscar especialista por nombre o correo…"
+                      value={searchEspecialista}
+                      onChange={(e) => setSearchEspecialista(e.target.value)}
+                    />
+                    <div className="max-h-60 overflow-auto rounded-md border p-2 space-y-1">
+                      {filteredEspecialistas.length ? (
+                        filteredEspecialistas.map((e) => {
+                          const id = e.id!;
+                          const checked = especialistaIds.includes(id);
+                          return (
+                            <label
+                              key={id}
+                              className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
+                            >
+                              <Checkbox
+                                checked={checked}
+                                onCheckedChange={() => toggleEspecialista(id)}
+                              />
+                              <div className="flex flex-col text-sm">
+                                <span className="font-medium">
+                                  {e.nombres} {e.apellidos}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  {e.email ?? ""}
+                                </span>
+                              </div>
+                            </label>
+                          );
+                        })
+                      ) : (
+                        <div className="text-sm text-muted-foreground px-2 py-4">
+                          Sin resultados para “{searchEspecialista}”
+                        </div>
+                      )}
                     </div>
-                    <div className="mt-1 text-[11px] text-muted-foreground">
-                      ID: {recursoDestino.id}
-                    </div>
+
+                    {especialistaIds.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        Seleccionados: {especialistaIds.length}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 ml-2"
+                          onClick={() => setEspecialistaIds([])}
+                        >
+                          Limpiar
+                        </Button>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Se enviará un correo a todos los especialistas seleccionados para que emitan su voto.
+                    </p>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+
+                {/* Footer sticky para tener acciones siempre visibles en móviles */}
+                <div className="sticky bottom-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-3 mt-2">
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline" className="w-full sm:w-auto">Cancelar</Button>
+                    </DialogClose>
+                    <Button onClick={realizarRelacion} className="gap-2 w-full sm:w-auto">
+                      <Link2 className="h-4 w-4" />
+                      Realizar relación
+                    </Button>
+                  </DialogFooter>
+                </div>
+              </DialogContent>
+            </form>
+          </Dialog>
         )}
-
-        {/* === Campos (sin cambios de lógica) === */}
-        <div className="grid gap-4 mt-2">
-          <div className="grid gap-3">
-            <Label htmlFor="tipo_relacion">Tipo relación</Label>
-            <Input
-              id="tipo_relacion"
-              name="tipo_relacion"
-              placeholder="Relación implícita"
-              value={tipo_relacion}
-              onChange={(e) => setTipo_relacion(e.target.value)}
-            />
-          </div>
-
-          <div className="grid gap-3">
-            <Label htmlFor="comentario">Comentario</Label>
-            <Textarea
-              id="comentario"
-              name="comentario"
-              placeholder="Registre un comentario de la relación"
-              value={comentario}
-              onChange={(e) => setComentario(e.target.value)}
-            />
-          </div>
-
-          {/* Selección de especialistas (tal cual, dentro de contenedor con scroll si crece) */}
-          <div className="grid gap-2">
-            <Label>Especialistas (opcional)</Label>
-            <Input
-              placeholder="Buscar especialista por nombre o correo…"
-              value={searchEspecialista}
-              onChange={(e) => setSearchEspecialista(e.target.value)}
-            />
-            <div className="max-h-60 overflow-auto rounded-md border p-2 space-y-1">
-              {filteredEspecialistas.length ? (
-                filteredEspecialistas.map((e) => {
-                  const id = e.id!;
-                  const checked = especialistaIds.includes(id);
-                  return (
-                    <label
-                      key={id}
-                      className="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-muted cursor-pointer"
-                    >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={() => toggleEspecialista(id)}
-                      />
-                      <div className="flex flex-col text-sm">
-                        <span className="font-medium">
-                          {e.nombres} {e.apellidos}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {e.email ?? ""}
-                        </span>
-                      </div>
-                    </label>
-                  );
-                })
-              ) : (
-                <div className="text-sm text-muted-foreground px-2 py-4">
-                  Sin resultados para “{searchEspecialista}”
-                </div>
-              )}
-            </div>
-
-            {especialistaIds.length > 0 && (
-              <div className="text-xs text-muted-foreground">
-                Seleccionados: {especialistaIds.length}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 ml-2"
-                  onClick={() => setEspecialistaIds([])}
-                >
-                  Limpiar
-                </Button>
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Se enviará un correo a todos los especialistas seleccionados para que emitan su voto.
-            </p>
-          </div>
-        </div>
-
-        {/* Footer sticky para tener acciones siempre visibles en móviles */}
-        <div className="sticky bottom-0 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 pt-3 mt-2">
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline" className="w-full sm:w-auto">Cancelar</Button>
-            </DialogClose>
-            <Button onClick={realizarRelacion} className="gap-2 w-full sm:w-auto">
-              <Link2 className="h-4 w-4" />
-              Realizar relación
-            </Button>
-          </DialogFooter>
-        </div>
-      </DialogContent>
-    </form>
-  </Dialog>
-)}
 
       </div>
 
       <form>
-        <div className="flex items-center gap-4 my-2">
+        <div className="flex flex-wrap items-center gap-2 my-2 ">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por #ID o repositorio..."
+              placeholder="Buscar…"
               className="pl-8"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-
+          <Select value={searchIn} onValueChange={(v) => setSearchIn(v as any)}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Buscar en…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectItem value="title">Título</SelectItem>
+                <SelectItem value="autores">Autores</SelectItem>
+                <SelectItem value="abstract">Resumen</SelectItem>
+                <SelectItem value="key_words">Palabras clave</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
           <div>
             <Select value={String(selectedRepoValue)} onValueChange={handleRepoChange}>
-              <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder="Selecciona repositorio destino" />
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Selecciona repositorio" />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -553,7 +585,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
           </div>
 
           <Select value={String(per_page)} onValueChange={(v) => setPer_page(Number(v))}>
-            <SelectTrigger className="w-[250px]">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Selecciona cantidad por página" />
             </SelectTrigger>
             <SelectContent>
@@ -568,7 +600,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
 
           <Button variant="default" size="sm" onClick={handleFilter} disabled={loading}>
             <Filter className="w-4 h-4 mr-2" />
-            {loading ? "Filtrando..." : "Filtrar"}
+            {loading ? "Buscando..." : "Buscar"}
           </Button>
         </div>
       </form>
@@ -605,19 +637,28 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50">
-                  <TableHead className="w-[350px] font-semibold text-gray-700">Información del Recurso</TableHead>
-                  <TableHead className="w-[350px] font-semibold text-gray-700">Contenido</TableHead>
+                  <TableHead className="w-[340px] font-semibold text-gray-700">Información del Recurso</TableHead>
+                  <TableHead className="w-[340px] font-semibold text-gray-700">Contenido</TableHead>
                   <TableHead className="w-[200px] font-semibold text-gray-700">Detalle</TableHead>
                   <TableHead className="w-[200px] font-semibold text-gray-700"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {recursos.length === 0 && !loading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-10 text-sm text-muted-foreground">
+                      No se encontraron resultados
+                      {debouncedSearch ? <> para “<b>{debouncedSearch}</b>”</> : null}
+                      {searchIn ? <> en <b>{searchIn}</b></> : null}.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
                 {recursos.map((resource) => {
                   const esOrigen = recursoOrigen?.id === resource.id;
                   const esDestino = recursoDestino?.id === resource.id;
                   return (
                     <TableRow key={resource.id}>
-                      <TableCell className="align-top p-4 w-[350px]">
+                      <TableCell className="align-top p-2 w-[340px]">
                         <div className="space-y-3">
                           <div>
                             <h3 className="max-w-[600px] whitespace-normal font-medium text-sm text-gray-900 leading-tight break-words hyphens-auto">
@@ -626,7 +667,7 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
                           </div>
                           <div>
                             <p className="text-xs text-gray-600 font-medium mb-1 ">Autores:</p>
-                            <p className="text-xs text-gray-700  w-[350px] whitespace-normal break-words">{resource.autores}</p>
+                            <p className="text-xs text-gray-700  w-[340px] whitespace-normal break-words">{resource.autores}</p>
                           </div>
                           <div className="flex items-start justify-between gap-2">
                             <Badge variant="outline" className="text-xs font-mono bg-cyan-100">ID: {resource.id}</Badge>
@@ -634,18 +675,18 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
                         </div>
                       </TableCell>
 
-                      <TableCell className="align-top p-4">
+                      <TableCell className="align-top p-2">
                         <div className="space-y-3">
                           <div>
                             <p className="text-xs text-gray-600 font-medium mb-1">Palabras clave:</p>
-                            <div className=" gap-1 w-[350px] whitespace-normal break-words">
+                            <div className=" gap-1 w-[340px] whitespace-normal break-words">
                               {resource.key_words}
                             </div>
                           </div>
                         </div>
                       </TableCell>
 
-                      <TableCell className="align-top p-4">
+                      <TableCell className="align-top p-2">
                         <div className="space-y-3">
                           <div>
                             <p className="text-xs text-gray-600 font-medium mb-1">Repositorio:</p>
@@ -678,8 +719,11 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
                         </div>
                       </TableCell>
 
-                      <TableCell className="align-top p-4 flex gap-1.5">
+                      <TableCell className="align-top p-2 flex gap-1.5">
+                        <Link to={`/recursos/${resource.id}`} className="font-medium hover:underline truncate">
                         <Eye className="text-blue-500" />
+                        </Link>
+
                         <div className="flex items-center gap-2">
                           {esOrigen && (<span className="text-xs rounded bg-blue-50 text-blue-700 px-2 py-0.5">Origen</span>)}
                           {esDestino && (<span className="text-xs rounded bg-green-50 text-green-700 px-2 py-0.5">Destino</span>)}
@@ -688,9 +732,9 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
                         {!recursoOrigen && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="icon" title="Seleccionar como origen">
+                              {can({ anyOf: ["relaciones.create"] }) && (<Button variant="ghost" size="icon" title="Seleccionar como origen">
                                 <ArrowRightToLine className="text-blue-600" />
-                              </Button>
+                              </Button>)}
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
@@ -715,14 +759,15 @@ const TableIRecursos = forwardRef<TableIntegracionRef>((_, ref) => {
                         {recursoOrigen && !esOrigen && !esDestino && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button
+                              {can({ anyOf: ["relaciones.create"] }) && (
+                                <Button
                                 variant="ghost"
                                 size="icon"
                                 title="Seleccionar como destino"
                                 disabled={resource.id === recursoOrigen.id}
                               >
                                 <ArrowLeftToLine className="text-green-600" />
-                              </Button>
+                              </Button>)}
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>

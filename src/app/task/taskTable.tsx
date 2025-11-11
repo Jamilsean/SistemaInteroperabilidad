@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect,  useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,9 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { CheckCircle2, RefreshCw, Save, Power, PowerOff } from "lucide-react";
 import { getHarvestTasks, updateHarvestTask, toggleHarvestTask } from "@/services/taskService";
- import { parseAxiosError } from "@/lib/http-error";
+import { parseAxiosError } from "@/lib/http-error";
+import { useAuthZ } from "@/hooks/useAuthZ";
 
-// Presets para repeat_every (en días)
 const REPEAT_PRESETS = [
     { key: "daily", label: "Diario", days: 1 },
     { key: "weekly", label: "Semanal", days: 7 },
@@ -24,16 +24,12 @@ const REPEAT_PRESETS = [
     { key: "custom", label: "Personalizado", days: 0 },
 ];
 
-// Convierte "YYYY-MM-DD HH:mm:ss" -> "YYYY-MM-DDTHH:mm" (para <input type="datetime-local" />)
 function toDatetimeLocalInput(s: string): string {
-    // intentamos parsear "YYYY-MM-DD HH:mm:ss"
     if (s.includes(" ")) {
         const [date, time] = s.split(" ");
-        // corta a minutos
         const hhmm = time?.slice(0, 5) ?? "00:00";
         return `${date}T${hhmm}`;
     }
-    // si ya viene ISO, lo normalizamos
     const d = new Date(s);
     if (isNaN(d.getTime())) return "";
     const pad = (n: number) => String(n).padStart(2, "0");
@@ -45,24 +41,22 @@ function toDatetimeLocalInput(s: string): string {
     return `${y}-${m}-${day}T${hh}:${mm}`;
 }
 
-// Convierte valor de <input type="datetime-local" /> a ISO Z para el backend
 function toISOZFromLocal(localValue: string): string {
-    // localValue: "YYYY-MM-DDTHH:mm"
     const d = new Date(localValue);
-    // Si el runtime interpreta como local, conviértelo a ISO con Z
     return d.toISOString();
 }
 
 type RowState = {
     id: number;
-    startLocal: string;       // control del input datetime-local
-    presetKey: string;        // una de REPEAT_PRESETS.key
-    customDays: number;       // si presetKey === "custom"
-    repeat_every: number;     // valor final en días
+    startLocal: string;
+    presetKey: string;
+    customDays: number;
+    repeat_every: number;
     is_active: boolean;
 };
 
 export default function TareasTable() {
+    const { can } = useAuthZ();
     const [loading, setLoading] = useState(true);
     const [rows, setRows] = useState<RowState[]>([]);
 
@@ -194,7 +188,7 @@ export default function TareasTable() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {rows.map((r, ) => (
+                                {rows.map((r,) => (
                                     <TableRow key={r.id}>
                                         <TableCell className="font-medium">{r.id}</TableCell>
                                         {/* Repositorio (solo display) */}
@@ -206,7 +200,7 @@ export default function TareasTable() {
                                                 onChange={(e) => handleStartChange(r.id, e.target.value)}
                                             />
                                         </TableCell>
-                                      
+
 
                                         {/* Frecuencia (preset) */}
                                         <TableCell>
@@ -256,26 +250,30 @@ export default function TareasTable() {
                                         {/* Acciones */}
                                         <TableCell className="text-right">
                                             <div className="flex items-center justify-end gap-2">
-                                                <Button variant="outline" size="sm" onClick={() => handleSave(r)}>
-                                                    <Save className="h-4 w-4 mr-1" />
-                                                    Guardar
-                                                </Button>
-                                                <Button
-                                                    variant={r.is_active ? "destructive" : "default"}
-                                                    size="sm"
-                                                    onClick={() => handleToggle(r)}
-                                                    className="gap-1"
-                                                >
-                                                    {r.is_active ? (
-                                                        <>
-                                                            <PowerOff className="h-4 w-4" /> Desactivar
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Power className="h-4 w-4" /> Activar
-                                                        </>
-                                                    )}
-                                                </Button>
+                                                {can({ anyOf: ["harvest_tasks.update"] }) && (
+                                                    <Button variant="outline" size="sm" onClick={() => handleSave(r)}>
+                                                        <Save className="h-4 w-4 mr-1" />
+                                                        Guardar
+                                                    </Button>
+                                                )}
+                                                {can({ anyOf: ["harvest_tasks.toggle"] }) && (
+                                                    <Button
+                                                        variant={r.is_active ? "destructive" : "default"}
+                                                        size="sm"
+                                                        onClick={() => handleToggle(r)}
+                                                        className="gap-1"
+                                                    >
+                                                        {r.is_active ? (
+                                                            <>
+                                                                <PowerOff className="h-4 w-4" /> Desactivar
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Power className="h-4 w-4" /> Activar
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     </TableRow>

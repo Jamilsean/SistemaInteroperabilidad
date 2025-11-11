@@ -2,7 +2,7 @@
 import React from "react";
 import type { SSOUser } from "@/types/auth";
 import { login as loginRemote, exchangeSSOCode, logoutRemote } from "@/services/authService";
-import api, { refreshOnce, setRefreshedHandler, setUnauthorizedHandler } from "@/lib/api";
+import { refreshOnce, setRefreshedHandler, setUnauthorizedHandler } from "@/lib/api";
 import { STORAGE_KEYS } from "@/config/env";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -247,18 +247,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     }
   };
 
-  const value: AuthContextType = {
-    user,
-    roles,
-    permissions,
-    loading,
-    error,
-    login,
-    loginWithSSO,
-    logout,
-    token: null,
-    setUser,
-  };
 
   // return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
   return <AuthContext.Provider value={{

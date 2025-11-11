@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import { parseAxiosError } from "@/lib/http-error"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useAuthZ } from "@/hooks/useAuthZ"
 
 function formatDateTime(iso?: string | null) {
   if (!iso) return "-";
@@ -24,7 +25,8 @@ function formatDateTime(iso?: string | null) {
 
 const initialForm: EspecialistaUpsertPayload = { nombres: "", apellidos: "", email: "" };
 export default function EspecialistasTable() {
-   // list states
+  const { can } = useAuthZ();
+  // list states
   const [rows, setRows] = useState<Especialista[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -75,15 +77,7 @@ export default function EspecialistasTable() {
 
   useEffect(() => {
     fetchList(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [perPage, sortBy, sortDir]); // cambia página a 1 si cambian filtros globales
-
-  // ---- crear / editar ----
-  // const openCreate = () => {
-  //   setEditingId(null);
-  //   setForm(initialForm);
-  //   setOpenForm(true);
-  // };
+  }, [perPage, sortBy, sortDir]);
 
   const openEdit = (row: Especialista) => {
     setEditingId(row.id);
@@ -94,7 +88,7 @@ export default function EspecialistasTable() {
   const handleSubmit = async () => {
     // validación mínima
     if (!form.nombres.trim() || !form.apellidos.trim() || !form.email.trim()) {
-      toast.error("Completa nombres, apellidos y email.");
+      toast.error("Completa nombres, apellidos y correo.");
       return;
     }
     try {
@@ -155,14 +149,14 @@ export default function EspecialistasTable() {
 
 
   return (
-     <div className="space-y-6">
+    <div className="space-y-6">
       {/* Filtros */}
       <div className="flex items-center gap-3">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-8"
-            placeholder="Buscar por nombre, apellido o email…"
+            placeholder="Buscar por nombre, apellido o correo..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && fetchList(1)}
@@ -216,10 +210,12 @@ export default function EspecialistasTable() {
 
         <Dialog open={openForm} onOpenChange={(o) => { setOpenForm(o); if (!o) { setEditingId(null); setForm(initialForm); } }}>
           <DialogTrigger asChild>
-            <Button variant="default" className="ml-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo especialista
-            </Button>
+            {can({ anyOf: ["especialistas.create"] }) && (
+              <Button variant="default" className="ml-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Nuevo especialista
+              </Button>
+            )}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -255,7 +251,7 @@ export default function EspecialistasTable() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                  placeholder="especialista@empresa.com"
+                  placeholder="especialista@inaigem.gob.pe"
                 />
               </div>
             </div>
@@ -280,10 +276,10 @@ export default function EspecialistasTable() {
               <TableHead className="w-[70px]">ID</TableHead>
               <TableHead>Nombres</TableHead>
               <TableHead>Apellidos</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>Correo</TableHead>
               <TableHead>Creado</TableHead>
               <TableHead>Actualizado</TableHead>
-              <TableHead className="w-[120px]">Acciones</TableHead>
+              <TableHead className="w-[90px]">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -296,21 +292,23 @@ export default function EspecialistasTable() {
                 <TableCell className="text-xs">{formatDateTime(r.created_at)}</TableCell>
                 <TableCell className="text-xs">{formatDateTime(r.updated_at)}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-
+                  <div className="flex items-center gap-0.5">
+                    {can({ anyOf: ["especialistas.update"] }) && (
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(r)} title="Editar">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    -
                     <AlertDialog open={openDelete && deleteId === r.id} onOpenChange={setOpenDelete}>
                       <AlertDialogTrigger asChild>
-                        <Button
+                        {can({ anyOf: ["especialistas.delete"] }) && (<Button
                           size="icon"
                           variant="ghost"
                           onClick={() => confirmDelete(r.id)}
                           title="Eliminar"
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
+                        </Button> )}
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>

@@ -138,8 +138,8 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  autoComplete="username"            // 👈 ayuda a no perder el valor
-                  placeholder="usuario@empresa.com"
+                  autoComplete="username"
+                  placeholder="usuario@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

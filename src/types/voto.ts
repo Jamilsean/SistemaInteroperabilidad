@@ -1,16 +1,16 @@
 export interface EnviarCorreosPayload {
   relacion_id: number;
-  especialistas: number[]; // IDs de especialistas
+  especialistas: number[]; 
 }
 
-// Respuesta genérica con mensaje
+// Respuesta genérica 
 export interface ApiMessageResponse {
   message: string;
 }
 
 /* ---------- Votos / Aprobación ---------- */
 
-// GET /v1/votos/{token}
+// GET /{token}
 export interface VotoDetalleResponse {
   relacion: {
     id: string;
@@ -25,13 +25,13 @@ export interface VotoDetalleResponse {
   };
   aprobacion: {
     ya_voto: boolean;
-    voto: string;          // e.g. "0" | "1" según tu backend
-    justificacion: string; // texto ingresado por el especialista
+    voto: string;         
+    justificacion: string; 
   };
 }
 
-// POST /v1/votos/{token}
+// POST /{token}
 export interface RegistrarVotoPayload {
-  voto: string;           // "0" / "1" (ajústalo a lo que tu API espere)
+  voto: string;         
   justificacion: string;
 }

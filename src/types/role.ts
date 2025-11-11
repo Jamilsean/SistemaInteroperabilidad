@@ -1,5 +1,4 @@
-// src/types/role.ts
-export type Permission = {
+ export type Permission = {
   id: number;
   name: string;
   display_name: string;

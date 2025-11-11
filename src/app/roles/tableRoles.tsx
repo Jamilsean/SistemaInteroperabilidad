@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, 
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -21,6 +21,7 @@ import { parseAxiosError } from "@/lib/http-error";
 import { listRoles, listPermissions, createRole, updateRole, deleteRole, getRole } from "@/services/roleService";
 import type { Permission, Role, GetRolesParams, CreateRolePayload, UpdateRolePayload } from "@/types/role";
 import { Plus, Shield, Search, Pencil, Eye, Trash2, RefreshCcw } from "lucide-react";
+import { useAuthZ } from "@/hooks/useAuthZ";
 
 const defaultParams: GetRolesParams = {
   page: 1,
@@ -32,6 +33,7 @@ const defaultParams: GetRolesParams = {
 };
 
 export default function TableIRecursos() {
+  const { can } = useAuthZ();
   // ------- filtros y paginación -------
   const [params, setParams] = React.useState<GetRolesParams>(defaultParams);
 
@@ -198,10 +200,10 @@ export default function TableIRecursos() {
               <RefreshCcw className="h-4 w-4 mr-1" />
               Actualizar
             </Button>
-            <Button onClick={openCreate}>
+            {can({ anyOf: ["roles.create"] }) && ( <Button onClick={openCreate}>
               <Plus className="h-4 w-4 mr-1" />
               Nuevo rol
-            </Button>
+            </Button>)}
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -259,7 +261,7 @@ export default function TableIRecursos() {
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[5,10,15,20,50,100].map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                    {[5, 10, 15, 20, 50, 100].map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -304,12 +306,13 @@ export default function TableIRecursos() {
                       }}>
                         <Eye className="h-4 w-4 mr-1" /> Ver permisos
                       </Button>
-                      <Button size="sm" onClick={() => openEditRole(r)}>
+                      {can({ anyOf: ["roles.update"] }) && ( <Button size="sm" onClick={() => openEditRole(r)}>
                         <Pencil className="h-4 w-4 mr-1" /> Editar
-                      </Button>
-                      <Button size="sm" variant="destructive" onClick={() => confirmDelete(r)}>
-                        <Trash2 className="h-4 w-4 mr-1" /> Eliminar
-                      </Button>
+                      </Button>)}
+                      {can({ anyOf: ["roles.delete"] }) && (
+                        <Button size="sm" variant="destructive" onClick={() => confirmDelete(r)}>
+                          <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                        </Button>)}
                     </TableCell>
                   </TableRow>
                 ))}
