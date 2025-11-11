@@ -68,6 +68,10 @@ api.interceptors.response.use(
     if (status !== 401 || cfg._retry || isAuthEndpoint(cfg.url)) {
       return Promise.reject(error);
     }
+     if ((status === 401 || status === 419) && cfg.url?.endsWith("/auth/refresh")) {
+      onUnauthorized?.();
+      return Promise.reject(error);
+    }
     cfg._retry = true;
 
     // Si ya hay un refresh en curso, encola esta petición
@@ -76,9 +80,9 @@ api.interceptors.response.use(
     }
 
     try {
-      await refreshOnce();     // una sola llamada real al backend
-      flush(null);             // libera la cola
-      return api.request(cfg); // reintenta la original
+      await refreshOnce();
+      flush(null);
+      return api.request(cfg);
     } catch (err: any) {
       flush(err);
       const st = err?.response?.status;

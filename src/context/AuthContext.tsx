@@ -162,15 +162,18 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   // bootstrap: intenta refrescar al montar, en focus, visibilitychange y cada 5 min
   React.useEffect(() => {
     let stopped = false;
-    if (isPublicPath(pathname)) return;
+    if (isPublicPath(pathname) && !user) return;
 
     const run = async () => {
       try {
-        const res = await refreshSession(); // ahora no duplica
+        const res = await refreshSession();
         if (stopped) return;
         if (res.user) setUser(res.user);
+        else setUser(null); 
         if (res.roles.length) setRoles(res.roles);
+        else setRoles([]);
         if (res.permissions.length) setPermissions(res.permissions);
+        else setPermissions([]);
       } catch {
         // deja que el interceptor maneje un 401 duro
       }
@@ -190,7 +193,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
       document.removeEventListener("visibilitychange", onVisible);
       window.clearInterval(iv);
     };
-  }, [pathname]);
+  }, [pathname,user]);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
