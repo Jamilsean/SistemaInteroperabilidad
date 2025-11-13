@@ -33,6 +33,7 @@ let _lastRefreshAt = 0;
 const REFRESH_COOLDOWN_MS = 10_000; // evita ráfagas (10s)
 
 export async function refreshOnce(): Promise<any> {
+  
   const now = Date.now();
   if (_refreshPromise) return _refreshPromise;
   if (now - _lastRefreshAt < REFRESH_COOLDOWN_MS) return null;

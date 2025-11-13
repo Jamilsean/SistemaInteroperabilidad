@@ -45,10 +45,10 @@ export default function TopNav() {
         >
           <div className="flex flex-col md:flex-row md:items-center md:gap-1 px-4 sm:px-6 md:px-0 py-2 md:py-0">
             <NavLink
-              to="/landingPage"
+              to=""
               onClick={handleNavClick}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive("/landingPage")
+                isActive("")
                   ? "bg-muted text-foreground"
                   : "text-foreground/70 hover:bg-muted/70 hover:text-foreground"
               }`}

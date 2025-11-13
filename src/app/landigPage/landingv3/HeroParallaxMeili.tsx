@@ -43,8 +43,8 @@ export default function HeroParallaxMeili({ className = "" }: HeroParallaxProps)
       />
       {/* Contenido */}
       <div className="relative h-full  flex items-center  flex-col ">
-         <h1 className="text-3xl text-center uppercase pt-24 pb-15    lg:text-4xl font-bold mb-10 text-azul-secondary" >
-            {nombre_sistema} <span className="font-extralight flex">Encuentra Documentos, Mapas y Datasets del repositorio</span>
+         <h1 className="text-2xl sm:text-3xl text-center uppercase pt-24 sm:pb-15    lg:text-4xl font-bold mb-10 text-azul-secondary" >
+            {nombre_sistema} <span className="font-extralight hidden sm:flex">Encuentra Documentos, Mapas y Datasets del repositorio</span>
             </h1>
         <div className="container mx-auto px-4 lg:px-8 w-full">
           <HeroSearchMeili />

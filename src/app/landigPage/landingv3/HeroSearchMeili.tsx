@@ -163,11 +163,11 @@ export default function HeroSearchMeili() {
   //   return from <= to;
   // }
   return (
-    <section className="relative">
-      <div className="relative z-10 py-5 lg:py-10 ">
-        <div className="container mx-auto w-2/3 px-4 lg:px-8">
-          <Card className="p-4 lg:p-6 rounded-2xl backdrop-blur bg-white/5">
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
+    <section className="relative ">
+      <div className="relative z-10 p-0 sm:py-5 lg:py-10 ">
+        <div className="container mx-auto w-full s:w-2/3 px-0 sm:px-4 lg:px-8">
+          <Card className="p-2 lg:p-6 gap-3 sm:gap-6 rounded-2xl backdrop-blur bg-white/5">
+            <div className="flex flex-col sm:flex-row gap-3 sm:mb-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -238,7 +238,7 @@ export default function HeroSearchMeili() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center justify-between flex-wrap gap-0.5 sm:gap-3">
               <Button
                 variant="ghost"
                 size="sm"
@@ -266,12 +266,12 @@ export default function HeroSearchMeili() {
             </div>
 
             {showAdvanced && (
-              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-1">
+              <div className="sm:mt-5 grid grid-cols-2 sm:grid-cols-3  lg:grid-cols-6 gap-1">
                 {/* Buscar en */}
-                <div>
-                  <div className="text-sm text-white mb-1">Buscar en</div>
+                <div className="">
+                  <div className="text-sm text-white sm:mb-1">Buscar en</div>
                   <Select value={searchIn} onValueChange={(v) => setSearchIn(v as any)}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white w-full">
                       <SelectValue placeholder="Campo" />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
@@ -284,10 +284,10 @@ export default function HeroSearchMeili() {
                 </div>
 
                 {/* Ordenar por */}
-                <div>
-                  <div className="text-sm text-white mb-1">Ordenar por</div>
+                <div className="hidden sm:flex sm:flex-col">
+                  <div className="text-sm text-white sm:mb-1">Ordenar por</div>
                   <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white w-full">
                       <SelectValue placeholder="Campo" />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
@@ -302,9 +302,9 @@ export default function HeroSearchMeili() {
 
                 {/* Dirección */}
                 <div>
-                  <div className="text-sm text-white mb-1">Dirección</div>
+                  <div className="text-sm text-white sm:mb-1">Dirección</div>
                   <Select value={sortDir} onValueChange={(v) => setSortDir(v as any)}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white w-full">
                       <SelectValue placeholder="asc/desc" />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
@@ -318,7 +318,7 @@ export default function HeroSearchMeili() {
                 <div>
                   <div className="text-sm text-white mb-1">Tipo (repositorio)</div>
                   <Select value={repo} onValueChange={(v) => setRepo(v as any)}>
-                    <SelectTrigger className="bg-white">
+                    <SelectTrigger className="bg-white w-full">
                       <SelectValue placeholder="Todos" />
                     </SelectTrigger>
                     <SelectContent className="bg-white">
@@ -332,7 +332,7 @@ export default function HeroSearchMeili() {
 
                 {/* Fecha desde */}
                 <div>
-                  <div className="text-sm text-white mb-1">Desde (MM-AAAA)</div>
+                  <div className="text-sm text-white w-full mb-1">Desde (MM-AAAA)</div>
                   <input
                     type="month"
                     className="bg-white w-full h-10 rounded-md border px-3 text-sm"

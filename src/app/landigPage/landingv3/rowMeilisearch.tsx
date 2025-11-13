@@ -7,6 +7,7 @@ import { getRecursosWithMeilisearch } from "@/services/recursosService";
 import { Button } from "@/components/ui/button";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type Props = {
   titulo: string;
@@ -36,7 +37,7 @@ export default function RowMeili({ titulo, repositorioId, verMasTo, perPage = 12
 
       <div className="container grid content-center mx-auto px-4 lg:px-8 h-full ">
         <div className="flex items-end justify-between mb-3  ">
-          <h2 className="text-2xl  uppercase font-bold p-2  border-l-8 border-[#00B188] text-azul-secondary ">{titulo}</h2>
+          <h2 className="text-2xl bg-white/90 uppercase font-bold p-2  border-l-8 border-[#00B188] text-azul-secondary ">{titulo}</h2>
           <Button variant="link" className="underline underline-offset-4 text-white hover:bg-amber-50 hover:text-azul" asChild>
             <Link to={verMasTo}>Ver más</Link>
           </Button>
@@ -56,20 +57,23 @@ export default function RowMeili({ titulo, repositorioId, verMasTo, perPage = 12
                 disableOnInteraction: false,
               }}
               modules={[Autoplay, Pagination, Navigation]}
-
+              
               className="mySwiper"
             >
 
 
-              {loading && <div className="py-10 text-muted-foreground animate-pulse">Cargando…</div>}
-              {!loading && items.map((r,idx) => (
-
+              {loading && <div className="py-10 text-muted-foreground items-center animate-pulse">Cargando…</div>}
+              {!loading && items.map((r, idx) => (
                 <div key={r.id} className="w-72  shrink-0 snap-start rounded-lg  border-b-10 border-[#00B188]   ">
                   <SwiperSlide key={`slide-${r.id ?? "noid"}-${idx}`}><ResourceTile r={r} /></SwiperSlide>
                 </div>
               ))}
             </Swiper>
-            {!loading && items.length === 0 && <div className="py-10 text-muted-foreground">Sin elementos</div>}
+            {!loading && items.length === 0 && <EmptyState
+              title="No se encontraron registros"
+              description="Verifica la conexión o vuelve a consultar."
+            />}
+            
           </div>
         </div>
       </div>

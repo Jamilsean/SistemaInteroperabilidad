@@ -40,7 +40,7 @@ export default function LandingPageV3Meili() {
   return (
     
 <main
-      className="h-screen bg-background snap-y snap-mandatory overflow-y-scroll"
+      className="h-screen bg-background opca snap-y snap-mandatory overflow-y-scroll"
       style={{           backgroundImage: `url(${heroImg})`, backgroundSize: 'cover', backgroundAttachment: 'fixed' }}
     >        <TopNav />
     <HeroParallaxMeili className="snap-start h-screen" />

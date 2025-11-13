@@ -29,15 +29,17 @@ export default function AppRoutes() {
       <Route path="/" element={<LandingPageV3Meili />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/landingPageMeili" element={<LandingPageV3Meili />} />
+      <Route path="/landingPage" element={<LandingPageV3Meili />} />
+      <Route path="/documentos" element={<Navigate to="/buscar?repositorio_id=2&sort_by=views&sort_dir=desc" replace />} />
+      <Route path="/mapas" element={<Navigate to="/buscar?repositorio_id=3&sort_by=views&sort_dir=desc" replace />} />
+      <Route path="/datasets" element={<Navigate to="/buscar?repositorio_id=1&sort_by=views&sort_dir=desc" replace />} />
       <Route path="/" element={<SSOEntry />} />
       <Route element={<Header />}>
         <Route path="/recursos/:id" element={<RecursoDetailPage />} />
       </Route>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/buscar" element={<BuscarPageMeili />} />
-      <Route path="/documentos" element={<Navigate to="/buscar?repositorio_id=2&sort_by=views&sort_dir=desc" replace />} />
-      <Route path="/mapas" element={<Navigate to="/buscar?repositorio_id=3&sort_by=views&sort_dir=desc" replace />} />
-      <Route path="/datasets" element={<Navigate to="/buscar?repositorio_id=1&sort_by=views&sort_dir=desc" replace />} />
+      
 
       {/* solo para no autenticados */}
       <Route element={<PublicOnlyRoute />}>

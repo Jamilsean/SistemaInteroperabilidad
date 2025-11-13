@@ -35,10 +35,13 @@ export const AuthContext = React.createContext<AuthContextType | null>(null);
 const LS_USER = STORAGE_KEYS.USER ?? "app:user";
 const LS_ROLES = "app:roles";
 const LS_PERMS = "app:perms";
-const PUBLIC_MATCHERS: (string | RegExp)[] = [
+export const PUBLIC_MATCHERS: (string | RegExp)[] = [
   "/", "/landingpage", "/landingPage", "/login", "/auth/callback",
   "/documentos", "/mapas", "/datasets",
-  /^\/recursos\/\d+$/, // /recursos/:id (detalle público)
+  "/buscar",                      
+  /^\/buscar(\/.*)?$/,           
+  "/forgot-password",            
+  /^\/recursos\/\d+$/,           
 ];
 
 
@@ -159,8 +162,8 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   // bootstrap: intenta refrescar al montar, en focus, visibilitychange y cada 5 min
   React.useEffect(() => {
   let stopped = false;
-  if (isPublicPath(pathname) && !user) return;
-
+  // if (isPublicPath(pathname) && !user) return;
+if (isPublicPath(pathname)) return;
   const run = async () => {
     try {
       const res = await refreshSession();

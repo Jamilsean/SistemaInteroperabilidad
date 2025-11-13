@@ -161,8 +161,8 @@ export default function TareasTable() {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
+        <div className="space-y-4 w-full bg-red-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between">
                 <h1 className="text-2xl font-semibold">Tareas programadas</h1>
                 <Button variant="outline" onClick={load}>
                     <RefreshCw className="h-4 w-4 mr-2" />
@@ -175,15 +175,15 @@ export default function TareasTable() {
                     <CardTitle className="text-base">Gestión de tareas</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="rounded-md border overflow-x-auto scroll-auto">
+                    <div className="rounded-md w-full border overflow-x-auto scroll-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="min-w-[160px]">Repositorio</TableHead>
+                                    <TableHead className="min-w-[100px]">Repositorio</TableHead>
                                     <TableHead className="min-w-[220px]">Inicio (fecha y hora)</TableHead>
                                     <TableHead className="min-w-[240px]">Frecuencia</TableHead>
-                                    <TableHead className="min-w-[140px] text-center">Cada (días)</TableHead>
-                                    <TableHead className="min-w-[120px] text-center">Estado</TableHead>
+                                    <TableHead className="min-w-[80px] text-center">Cada (días)</TableHead>
+                                    <TableHead className="min-w-[80px] text-center">Estado</TableHead>
                                     <TableHead className="min-w-[220px] text-right">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>

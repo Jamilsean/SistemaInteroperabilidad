@@ -92,7 +92,7 @@ export default function RecursoDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button asChild variant="ghost">
-          <Link to="/landingpage">
+          <Link to="/">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Inicio
           </Link>
